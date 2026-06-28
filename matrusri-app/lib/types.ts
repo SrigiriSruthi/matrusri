@@ -32,6 +32,7 @@ export type Task = {
   status: TaskStatus;
   proofType: ProofType;
   assignedTo: string;
+  icon?: string;
 };
 
 export type Outing = {

@@ -18,6 +18,9 @@ export default function TaskCard({ task, href, lang = "en" }: { task: Task; href
         dim ? "opacity-70" : ""
       }`}
     >
+      {task.icon && (
+        <div className="text-2xl mr-2 shrink-0 leading-none">{task.icon}</div>
+      )}
       <div className="w-16 text-xs text-slate-500 font-semibold shrink-0">{task.time}</div>
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-sm truncate">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { reassignTaskTemplate } from "@/lib/actions";
+import { iconForTask } from "@/lib/i18n";
 
 type T = {
   id: string;
@@ -61,6 +62,7 @@ export default function ScheduleClient({ templates, wardens }: { templates: T[];
       {templates.map((t) => (
         <div key={t.id} className="bg-white border border-slate-200 rounded-xl p-3 mb-2">
           <div className="flex items-start justify-between mb-2">
+            <div className="text-2xl mr-2 leading-none shrink-0">{iconForTask(t.name)}</div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-sm">{t.name}</div>
               <div className="text-[11px] text-slate-500 mt-0.5">

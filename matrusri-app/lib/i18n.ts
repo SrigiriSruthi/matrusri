@@ -178,3 +178,30 @@ export const T: Record<string, Record<Lang, string>> = {
 export function t(key: string, lang: Lang): string {
   return T[key]?.[lang] ?? key;
 }
+
+// ──────────────────────────────────────────────────────────────────
+// Task icons — fixed map keyed by English task name.
+// (Not stored in DB to keep migrations minimal; easy to override per task.)
+// ──────────────────────────────────────────────────────────────────
+const TASK_ICONS: Record<string, string> = {
+  "Fans OFF": "🔌",
+  "Bore pump ON": "🚰",
+  "Bore pump OFF": "🚰",
+  "Water pump OFF photo": "🚰",
+  "Yoga photo": "🧘",
+  "Room lock confirmation": "🔒",
+  "Breakfast wastage photo": "🍳",
+  "Lunch wastage photo": "🍛",
+  "Snacks wastage photo": "🫖",
+  "Dinner wastage photo": "🍽",
+  "Sick check + snacks": "🤒",
+  "Evening study hall": "📖",
+  "Dining + Learning hall photos": "🧹",
+  "Laundry distribution": "🧺",
+};
+
+export function iconForTask(englishName: string): string {
+  if (TASK_ICONS[englishName]) return TASK_ICONS[englishName];
+  if (englishName.startsWith("Attendance")) return "🔢";
+  return "📋";
+}

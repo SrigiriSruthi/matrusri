@@ -28,7 +28,7 @@ function nowSubtitle() {
 export default async function WardenHome() {
   const me = await guardRole("warden");
   const tasksRaw = await getWardenToday(me.id);
-  // Translate task names to the user's language
+  // Translate task names to the user's language (icon was already set from English name)
   const tasks = tasksRaw.map((task) => ({
     ...task,
     name: t(task.name, me.language),

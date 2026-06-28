@@ -3,6 +3,7 @@
  */
 import { serviceClient } from "./supabase";
 import type { Task } from "./types";
+import { iconForTask } from "./i18n";
 
 function formatSlotTime(t: string) {
   // "06:30:00" -> "6:30 am"
@@ -92,6 +93,7 @@ export async function getWardenToday(wardenId?: string): Promise<Task[]> {
       status: uiStatus,
       proofType: (t?.proof_type ?? "tap") as "photo" | "count" | "tap",
       assignedTo: r.assigned?.name ?? "",
+      icon: iconForTask(name),
     };
   });
 }
