@@ -6,15 +6,7 @@ import { createOuting } from "@/lib/actions";
 
 type Student = { id: string; name: string; class: string; dorm: string; parent_name: string };
 
-const REASONS: Array<{ id: "sick" | "family_event" | "doctor_visit" | "emergency" | "other"; label: string }> = [
-  { id: "sick", label: "🤒 Sick" },
-  { id: "family_event", label: "👨‍👩‍👧 Family event" },
-  { id: "doctor_visit", label: "🏥 Doctor visit" },
-  { id: "emergency", label: "🚨 Emergency" },
-  { id: "other", label: "📝 Other" },
-];
-
-// 2nd Saturday detection
+// 2nd Saturday detection — special-day flag for management dashboard
 function is2ndSaturday() {
   const now = new Date();
   if (now.getDay() !== 6) return false;
@@ -26,12 +18,14 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Student | null>(null);
-  const [reason, setReason] = useState<"sick" | "family_event" | "doctor_visit" | "emergency" | "other" | "">("");
-  const [note, setNote] = useState("");
+  // Simplified: just sick vs outing
+  const [outingKind, setOutingKind] = useState<"sick" | "outing">("outing");
+  const [reasonText, setReasonText] = useState("");
   const [returnTime, setReturnTime] = useState("21:00");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 2nd Saturday is the regular outing day. Otherwise it's flagged for management.
   const isSpecialDay = !is2ndSaturday();
 
   const filtered = query
@@ -43,10 +37,6 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
 
   async function submit() {
     if (!picked) return;
-    if (isSpecialDay && !reason) {
-      setError("Pick a reason — today is not a 2nd Saturday.");
-      return;
-    }
     setBusy(true);
     setError(null);
     try {
@@ -54,11 +44,23 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
       const [hh, mm] = returnTime.split(":");
       const exp = `${today}T${hh}:${mm}:00`;
 
+      // Map our 2 user-facing types to the DB's 3 internal types:
+      //  - sick + non-2nd-Saturday → sick_pickup (always exception)
+      //  - sick + 2nd-Saturday → sick_pickup (still exception, sick is always shown)
+      //  - outing + 2nd-Saturday → regular
+      //  - outing + non-2nd-Saturday → special
+      let dbType: "regular" | "special" | "sick_pickup";
+      if (outingKind === "sick") {
+        dbType = "sick_pickup";
+      } else {
+        dbType = isSpecialDay ? "special" : "regular";
+      }
+
       await createOuting({
         studentId: picked.id,
-        type: isSpecialDay ? "special" : "regular",
-        reason: reason || undefined,
-        reasonNote: note || undefined,
+        type: dbType,
+        reason: outingKind === "sick" ? "sick" : "other",
+        reasonNote: reasonText || undefined,
         expectedReturnAt: exp,
       });
       alert("Request sent to staff approvers. You'll see it under 'Approved & waiting at gate' once approved.");
@@ -73,7 +75,7 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
     <div>
       <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs px-3 py-2 rounded mb-4">
         {isSpecialDay
-          ? "Today is NOT the 2nd Saturday — this will be flagged as a special-day request. Reason required."
+          ? "Today is NOT the 2nd Saturday — this will be flagged for management as a special-day outing."
           : "Today is the 2nd Saturday — regular outing day."}
       </div>
 
@@ -112,31 +114,38 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
       {picked && (
         <>
           <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-2">
-            Reason {isSpecialDay ? "(required)" : "(optional)"}
+            Type
           </div>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {REASONS.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => setReason(r.id)}
-                className={`px-3 py-2 rounded-full text-xs border ${
-                  reason === r.id
-                    ? "bg-blue-800 text-white border-blue-800"
-                    : "bg-slate-100 text-slate-700 border-slate-300"
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <button
+              onClick={() => setOutingKind("sick")}
+              className={`py-3 rounded-lg text-sm font-semibold border ${
+                outingKind === "sick"
+                  ? "bg-red-600 text-white border-red-600"
+                  : "bg-slate-50 text-slate-700 border-slate-300"
+              }`}
+            >
+              🤒 Sick
+            </button>
+            <button
+              onClick={() => setOutingKind("outing")}
+              className={`py-3 rounded-lg text-sm font-semibold border ${
+                outingKind === "outing"
+                  ? "bg-blue-800 text-white border-blue-800"
+                  : "bg-slate-50 text-slate-700 border-slate-300"
+              }`}
+            >
+              🚪 Outing
+            </button>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-3 mb-3">
-            <label className="text-xs text-slate-500 block mb-1">Note (optional)</label>
+            <label className="text-xs text-slate-500 block mb-1">Reason</label>
             <input
               type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g., father in town for lunch"
+              value={reasonText}
+              onChange={(e) => setReasonText(e.target.value)}
+              placeholder={outingKind === "sick" ? "e.g., fever, vomiting" : "e.g., father in town for lunch"}
               className="w-full border border-slate-300 rounded p-2 text-sm"
             />
           </div>
@@ -155,7 +164,7 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
 
           <button
             onClick={submit}
-            disabled={busy || (isSpecialDay && !reason)}
+            disabled={busy}
             className="w-full bg-emerald-600 text-white font-semibold py-4 rounded-lg disabled:bg-slate-300"
           >
             {busy ? "Sending…" : "📤 Send to staff for approval"}

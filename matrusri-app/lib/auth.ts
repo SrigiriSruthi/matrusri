@@ -18,6 +18,7 @@ export type SessionUser = {
   name: string;
   username: string;
   role: "management" | "warden" | "staff";
+  language: "en" | "te" | "hi";
 };
 
 export async function hashPassword(plain: string): Promise<string> {
@@ -41,7 +42,7 @@ export async function loginWithUsernamePassword(
   const trimmed = username.trim().toLowerCase();
   const { data: user, error } = await sb
     .from("users")
-    .select("id, name, username, role, password_hash, is_active")
+    .select("id, name, username, role, language, password_hash, is_active")
     .ilike("username", trimmed)
     .eq("is_active", true)
     .maybeSingle();
@@ -59,6 +60,7 @@ export async function loginWithUsernamePassword(
       name: user.name,
       username: user.username,
       role: user.role,
+      language: (user.language ?? "en") as "en" | "te" | "hi",
     },
   };
 }
@@ -87,7 +89,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const sb = serviceClient();
   const { data: user, error } = await sb
     .from("users")
-    .select("id, name, username, role, is_active")
+    .select("id, name, username, role, language, is_active")
     .eq("id", sessionId)
     .maybeSingle();
 
@@ -105,6 +107,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     name: user.name,
     username: user.username,
     role: user.role,
+    language: (user.language ?? "en") as "en" | "te" | "hi",
   };
 }
 

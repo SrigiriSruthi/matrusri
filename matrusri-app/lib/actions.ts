@@ -421,9 +421,11 @@ export async function createUser(form: FormData) {
   const phone = String(form.get("phone") ?? "").trim();
   const role = String(form.get("role") ?? "");
   const password = String(form.get("password") ?? "");
+  const language = String(form.get("language") ?? "en");
 
   if (!name || !username || !phone || !password) throw new Error("Missing fields");
   if (!["warden", "staff", "management"].includes(role)) throw new Error("Bad role");
+  if (!["en", "te", "hi"].includes(language)) throw new Error("Bad language");
   if (password.length < 6) throw new Error("Password must be at least 6 characters");
 
   // Create auth.users row first
@@ -453,7 +455,7 @@ export async function createUser(form: FormData) {
     phone,
     role: role as "warden" | "staff" | "management",
     password_hash: passwordHash,
-    language: "en",
+    language: language as "en" | "te" | "hi",
   });
 
   if (error) throw error;
@@ -531,6 +533,20 @@ export async function toggleUserActive(userId: string, isActive: boolean) {
   );
   revalidatePath("/management/settings/users");
   revalidatePath("/management/settings/schedule");
+}
+
+export async function setMyLanguage(lang: "en" | "te" | "hi") {
+  const me = await getCurrentUser();
+  if (!me) denied();
+  const sb = serviceClient();
+  const { error } = await sb.from("users").update({ language: lang }).eq("id", me!.id);
+  if (error) throw error;
+  await logAudit(me!.id, "user.language_changed", "users", me!.id, { lang });
+  revalidatePath("/warden");
+  revalidatePath("/management");
+  revalidatePath("/staff");
+  revalidatePath("/warden/me");
+  revalidatePath("/staff/me");
 }
 
 export async function resetUserPassword(userId: string, newPassword: string) {

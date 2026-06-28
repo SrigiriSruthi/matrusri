@@ -1,14 +1,15 @@
 import Link from "next/link";
 import type { Task } from "@/lib/types";
+import { t, type Lang } from "@/lib/i18n";
 
-const BADGE: Record<Task["status"], { label: string; classes: string; bar: string }> = {
-  done: { label: "Done", classes: "bg-green-100 text-green-800", bar: "" },
-  open: { label: "Open now", classes: "bg-blue-100 text-blue-800", bar: "border-l-4 border-amber-500" },
-  missed: { label: "Missed", classes: "bg-red-100 text-red-800", bar: "border-l-4 border-red-500" },
-  upcoming: { label: "Upcoming", classes: "bg-slate-100 text-slate-500", bar: "" },
+const BADGE: Record<Task["status"], { key: string; classes: string; bar: string }> = {
+  done: { key: "Done", classes: "bg-green-100 text-green-800", bar: "" },
+  open: { key: "Open now", classes: "bg-blue-100 text-blue-800", bar: "border-l-4 border-amber-500" },
+  missed: { key: "Missed", classes: "bg-red-100 text-red-800", bar: "border-l-4 border-red-500" },
+  upcoming: { key: "Upcoming", classes: "bg-slate-100 text-slate-500", bar: "" },
 };
 
-export default function TaskCard({ task, href }: { task: Task; href?: string }) {
+export default function TaskCard({ task, href, lang = "en" }: { task: Task; href?: string; lang?: Lang }) {
   const badge = BADGE[task.status];
   const dim = task.status === "done" || task.status === "missed";
   const card = (
@@ -26,7 +27,7 @@ export default function TaskCard({ task, href }: { task: Task; href?: string }) 
         <div className="text-xs text-slate-500 truncate">{task.meta}</div>
       </div>
       <span className={`text-[10px] px-2 py-1 rounded-full font-semibold uppercase ml-2 shrink-0 ${badge.classes}`}>
-        {badge.label}
+        {t(badge.key, lang)}
       </span>
     </div>
   );

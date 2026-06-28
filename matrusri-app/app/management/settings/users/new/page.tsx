@@ -31,6 +31,14 @@ export default async function NewUserPage() {
           </select>
         </div>
         <div>
+          <label className="block text-xs text-slate-500 mb-1">Language *</label>
+          <select name="language" defaultValue="en" required className="w-full border border-slate-300 rounded p-2 text-sm bg-white">
+            <option value="en">English</option>
+            <option value="te">తెలుగు (Telugu)</option>
+            <option value="hi">हिंदी (Hindi)</option>
+          </select>
+        </div>
+        <div>
           <label className="block text-xs text-slate-500 mb-1">Initial password * (min 6 chars)</label>
           <input name="password" required minLength={6} type="text" placeholder="they can change it later" className="w-full border border-slate-300 rounded p-2 text-sm" />
           <div className="text-[11px] text-slate-500 mt-1">

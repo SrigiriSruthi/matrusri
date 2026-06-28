@@ -3,6 +3,7 @@ import BottomNav from "@/components/BottomNav";
 import TaskCard from "@/components/TaskCard";
 import { getWardenToday } from "@/lib/warden";
 import { guardRole } from "@/lib/guard";
+import { t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,12 @@ function nowSubtitle() {
 
 export default async function WardenHome() {
   const me = await guardRole("warden");
-  const tasks = await getWardenToday(me.id);
+  const tasksRaw = await getWardenToday(me.id);
+  // Translate task names to the user's language
+  const tasks = tasksRaw.map((task) => ({
+    ...task,
+    name: t(task.name, me.language),
+  }));
 
   const done = tasks.filter((t) => t.status === "done").length;
   const open = tasks.filter((t) => t.status === "open").length;
@@ -70,7 +76,7 @@ export default async function WardenHome() {
               : task.proofType === "photo" || task.proofType === "tap"
               ? `/warden/task-action/${task.id}`
               : undefined;
-          return <TaskCard key={task.id} task={task} href={href} />;
+          return <TaskCard key={task.id} task={task} href={href} lang={me.language} />;
         })}
       </div>
 

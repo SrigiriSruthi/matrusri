@@ -2,7 +2,10 @@ import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import MgmtTabBar from "@/components/MgmtTabBar";
+import LanguagePicker from "@/components/LanguagePicker";
 import { guardRole } from "@/lib/guard";
+
+export const dynamic = "force-dynamic";
 
 const MGMT_NAV = [
   { href: "/management", icon: "📊", label: "Today" },
@@ -39,6 +42,11 @@ export default async function SettingsPage() {
             <span className="text-slate-400 ml-2">›</span>
           </Link>
         ))}
+
+        <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 mt-6 mb-2">
+          My settings
+        </div>
+        <LanguagePicker current={me.language} />
 
         <div className="text-xs text-slate-400 text-center mt-6">
           Logged in as {me.name} · Management

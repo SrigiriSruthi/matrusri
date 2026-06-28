@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
+import LanguagePicker from "@/components/LanguagePicker";
 import { guardRole } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
@@ -64,13 +65,7 @@ export default async function StaffMe() {
         <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-2">
           Settings
         </div>
-        <Link href="#" className="bg-white border border-slate-200 rounded-xl p-3 mb-2 flex items-center no-underline text-inherit">
-          <span className="text-xl mr-3">🔒</span>
-          <div className="flex-1">
-            <div className="text-sm font-semibold">Change PIN</div>
-          </div>
-          <span className="text-slate-400">›</span>
-        </Link>
+        <LanguagePicker current={me.language} />
         <Link href="#" className="bg-white border border-slate-200 rounded-xl p-3 mb-2 flex items-center no-underline text-inherit">
           <span className="text-xl mr-3">🔔</span>
           <div className="flex-1">
