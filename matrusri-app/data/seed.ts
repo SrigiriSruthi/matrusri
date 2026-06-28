@@ -85,6 +85,18 @@ export const LATEST_ATTENDANCE = {
   // computed: 150 - 82 - 61 - 7 = 0; we'll display missing properly below
 };
 
+// Live student state — derived. Sick is in-hostel only (resting + at doctor in hostel).
+// "Sent home sick" students count as on outing, not sick.
+export const STUDENT_STATE = {
+  presentBoys: 82,
+  presentGirls: 61,
+  enrolledBoys: 85,
+  enrolledGirls: 65,
+  onOuting: 7,           // includes regular + special + sick-pickup outings
+  sickInHostel: 2,       // resting in hostel only
+  missing: 0,            // present + outing + sick = 150
+};
+
 export const PENDING_APPROVALS = [
   {
     id: "ap1",
