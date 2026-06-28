@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "./auth";
 import { serviceClient } from "./supabase";
+import { todayIST } from "./timezone";
 
 function denied() {
   throw new Error("Not authorized");
@@ -89,7 +90,7 @@ export async function submitAttendance(opts: {
   if (me!.role !== "warden" && me!.role !== "management") denied();
 
   const sb = serviceClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
 
   // Upsert: if a row exists for (date, slot_number), update it; otherwise insert
   const { data: existing } = await sb
@@ -503,7 +504,7 @@ export async function toggleUserActive(userId: string, isActive: boolean) {
           .select("id");
 
         // Reassign today's open task_instances (skip completed/missed — history preserved)
-        const today = new Date().toISOString().slice(0, 10);
+        const today = todayIST();
         const { data: instRows } = await sb
           .from("task_instances")
           .update({ assigned_to: replacement.id })
@@ -579,7 +580,7 @@ export async function reassignTaskTemplate(templateId: string, newAssigneeId: st
   if (error) throw error;
 
   // Also reassign today's open instances so the new warden sees it immediately
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
   await sb
     .from("task_instances")
     .update({ assigned_to: newAssigneeId })
@@ -622,7 +623,7 @@ export async function updateTaskTemplate(form: FormData) {
   if (error) throw error;
 
   // Also reassign today's open instances if the assignee changed
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
   await sb
     .from("task_instances")
     .update({ assigned_to: defaultAssignee })
@@ -704,7 +705,7 @@ export async function generateTodayInstances() {
   if (!me || me.role !== "management") denied();
 
   const sb = serviceClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
 
   // Wipe existing instances for today
   await sb.from("task_instances").delete().eq("date", today);

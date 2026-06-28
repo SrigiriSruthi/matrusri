@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { serviceClient } from "@/lib/supabase";
+import { todayIST } from "@/lib/timezone";
 
 export async function POST(req: NextRequest) {
   const me = await getCurrentUser();
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   const sb = serviceClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
   const ts = Date.now();
   const ext = file.name.split(".").pop() || "jpg";
   const path = `${taskKind}/${today}/${me.id}-${ts}.${ext}`;

@@ -4,6 +4,7 @@
 import { serviceClient } from "./supabase";
 import type { Task } from "./types";
 import { iconForTask } from "./i18n";
+import { todayIST, formatTimeIST } from "./timezone";
 
 function formatSlotTime(t: string) {
   // "06:30:00" -> "6:30 am"
@@ -17,12 +18,7 @@ function formatSlotTime(t: string) {
 
 function formatTime(iso: string | null) {
   if (!iso) return null;
-  const d = new Date(iso);
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const ampm = h >= 12 ? "pm" : "am";
-  h = h % 12 || 12;
-  return `${h}:${m.toString().padStart(2, "0")} ${ampm}`;
+  return formatTimeIST(iso);
 }
 
 function formatWindow(start: string, end: string) {
@@ -31,7 +27,7 @@ function formatWindow(start: string, end: string) {
 
 export async function getWardenToday(wardenId?: string): Promise<Task[]> {
   const sb = serviceClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
 
   let q = sb
     .from("task_instances")

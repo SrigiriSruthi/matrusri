@@ -2,6 +2,7 @@
  * Server-side fetchers — read data from Supabase for pages to render.
  */
 import { serviceClient } from "./supabase";
+import { todayIST } from "./timezone";
 
 export async function getStudents() {
   const sb = serviceClient();
@@ -124,7 +125,7 @@ export async function getAuditLog(opts: { limit?: number; date?: string } = {}) 
 
 export async function getTodayTaskInstances() {
   const sb = serviceClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
   const { data, error } = await sb
     .from("task_instances")
     .select(`

@@ -1,6 +1,7 @@
 import PhoneHeader from "@/components/PhoneHeader";
 import { guardRole } from "@/lib/guard";
 import { getAuditLog } from "@/lib/fetchers";
+import { formatTimeIST } from "@/lib/timezone";
 
 export const dynamic = "force-dynamic";
 
@@ -30,12 +31,7 @@ const ACTION_LABELS: Record<string, { icon: string; label: string }> = {
 };
 
 function formatTime(iso: string) {
-  const d = new Date(iso);
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const a = h >= 12 ? "pm" : "am";
-  h = h % 12 || 12;
-  return `${h}:${m.toString().padStart(2, "0")} ${a}`;
+  return formatTimeIST(iso);
 }
 
 export default async function ActivityLog() {

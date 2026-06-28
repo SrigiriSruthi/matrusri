@@ -2,6 +2,7 @@
  * Aggregates used by the management Today dashboard.
  */
 import { serviceClient } from "./supabase";
+import { todayIST, nowIST, formatTimeIST } from "./timezone";
 
 export type DashboardSummary = {
   hostelName: string;
@@ -39,12 +40,7 @@ export type DashboardSummary = {
 };
 
 function formatTime(iso: string): string {
-  const d = new Date(iso);
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const ampm = h >= 12 ? "pm" : "am";
-  h = h % 12 || 12;
-  return `${h}:${m.toString().padStart(2, "0")} ${ampm}`;
+  return formatTimeIST(iso);
 }
 
 function relativeTime(iso: string): string {
@@ -60,7 +56,7 @@ const SLOT_NAMES = ["", "Study hall", "School interval", "Lunch", "Afternoon", "
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
   const sb = serviceClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIST();
 
   // Hostel config
   const { data: cfg } = await sb.from("config").select("hostel_name").single();
@@ -105,8 +101,8 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   const accountedFor = presentBoys + presentGirls + onOuting + sickInHostel;
   const missing = Math.max(0, totalEnrolled - accountedFor);
 
-  // Today's task instances
-  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  // Today's task instances — use IST
+  const nowMin = nowIST().totalMinutes;
   const { data: instances } = await sb
     .from("task_instances")
     .select("status, template:task_templates(name, slot_time)")

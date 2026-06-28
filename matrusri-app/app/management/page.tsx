@@ -4,6 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import MgmtTabBar from "@/components/MgmtTabBar";
 import { getDashboardSummary } from "@/lib/dashboard";
 import { guardRole } from "@/lib/guard";
+import { formatDateIST, formatTimeIST } from "@/lib/timezone";
 
 export const dynamic = "force-dynamic";
 
@@ -44,14 +45,9 @@ function StatCard({
   );
 }
 
-function nowSubtitle(d: string) {
-  const date = new Date();
-  const day = date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
-  let h = date.getHours();
-  const m = date.getMinutes();
-  const ampm = h >= 12 ? "pm" : "am";
-  h = h % 12 || 12;
-  return `${day} · ${h}:${m.toString().padStart(2, "0")} ${ampm}`;
+function nowSubtitle(_d: string) {
+  const now = new Date();
+  return `${formatDateIST(now)} · ${formatTimeIST(now)}`;
 }
 
 export default async function ManagementToday() {

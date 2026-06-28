@@ -4,6 +4,7 @@ import TaskCard from "@/components/TaskCard";
 import { getWardenToday } from "@/lib/warden";
 import { guardRole } from "@/lib/guard";
 import { t } from "@/lib/i18n";
+import { formatDateIST, formatTimeIST } from "@/lib/timezone";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +17,8 @@ const WARDEN_NAV = [
 ];
 
 function nowSubtitle() {
-  const d = new Date();
-  const day = d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const ampm = h >= 12 ? "pm" : "am";
-  h = h % 12 || 12;
-  return `${day} · ${h}:${m.toString().padStart(2, "0")} ${ampm}`;
+  const now = new Date();
+  return `${formatDateIST(now)} · ${formatTimeIST(now)}`;
 }
 
 export default async function WardenHome() {
