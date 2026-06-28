@@ -42,14 +42,22 @@ export const TODAY_TASKS: Task[] = [
   { id: "t18", time: "9:30 pm",  name: "Dinner wastage photo",            meta: "9:30 – 11:30 pm",                                   status: "upcoming", proofType: "photo", assignedTo: "Lakshmi" },
 ];
 
+// Away today (Sun 28 Jun is the 2nd-Saturday-following Sunday, so a few regular outings).
+// Total = 5 students = 1 sick_pickup + 1 special + 3 regular (matches STUDENT_STATE.onOuting).
 export const AWAY_TODAY: Outing[] = [
-  { id: "o1", studentName: "Ravi Kumar",  studentClass: "8", type: "sick_pickup", reason: "Sick", reasonNote: "Fever, headache",      startedAt: "6:32 pm", approvedBy: "Lakshmi" },
-  { id: "o2", studentName: "Sreeja Reddy", studentClass: "9", type: "special",    reason: "Family event", reasonNote: "Father in town for lunch", startedAt: "6:38 pm", expectedReturn: "9:00 pm", approvedBy: "Suresh" },
+  { id: "o1", studentName: "Ravi Kumar",   studentClass: "8", type: "sick_pickup", reason: "Sick",         reasonNote: "Fever, headache",            startedAt: "6:32 pm", approvedBy: "Lakshmi" },
+  { id: "o2", studentName: "Sreeja Reddy", studentClass: "9", type: "special",     reason: "Family event", reasonNote: "Father in town for lunch",   startedAt: "6:38 pm", expectedReturn: "9:00 pm", approvedBy: "Suresh"  },
+  { id: "o3", studentName: "Anil Kumar",   studentClass: "7", type: "regular",    reason: "Home visit",   reasonNote: "Monthly home visit",         startedAt: "4:12 pm", expectedReturn: "9:00 pm", approvedBy: "Suresh"  },
+  { id: "o4", studentName: "Pooja",        studentClass: "6", type: "regular",    reason: "Home visit",   reasonNote: "Monthly home visit",         startedAt: "4:30 pm", expectedReturn: "9:00 pm", approvedBy: "Lakshmi" },
+  { id: "o5", studentName: "Aditya",       studentClass: "7", type: "regular",    reason: "Home visit",   reasonNote: "Monthly home visit",         startedAt: "4:35 pm", expectedReturn: "9:00 pm", approvedBy: "Suresh"  },
 ];
 
+// Active sick list = students still in hostel with an open sick log.
+// Ravi was reported sick at 4:30 pm but parent picked him up at 6:32 pm —
+// his sick log closed with outcome=sent_home, and a sick_pickup outing opened.
+// So Ravi is NOT in this list anymore (he's in AWAY_TODAY).
 export const ACTIVE_SICK: SickLog[] = [
   { id: "sk1", studentName: "Anusha",  studentClass: "6", symptoms: "Stomach ache",   reportedAt: "3:15 pm", parentCalledAt: "3:45 pm", outcome: "resting" },
-  { id: "sk2", studentName: "Ravi",    studentClass: "8", symptoms: "Fever, headache", reportedAt: "4:30 pm" },
   { id: "sk3", studentName: "Kiran",   studentClass: "9", symptoms: "Cold",            reportedAt: "yesterday", parentCalledAt: "yesterday", outcome: "resting", daysActive: 2 },
 ];
 
@@ -79,22 +87,25 @@ export const LATEST_ATTENDANCE = {
   verified: true,
   enrolledBoys: 85,
   enrolledGirls: 65,
-  presentBoys: 82,
-  presentGirls: 61,
-  onOuting: 7,
-  // computed: 150 - 82 - 61 - 7 = 0; we'll display missing properly below
+  presentBoys: 81,
+  presentGirls: 62,
+  onOuting: 5,
 };
 
-// Live student state — derived. Sick is in-hostel only (resting + at doctor in hostel).
+// Live student state — derived. Sick is in-hostel only.
 // "Sent home sick" students count as on outing, not sick.
+// Reconciles: presentBoys + presentGirls + onOuting + sickInHostel = 150 enrolled.
+//   Away (5): Ravi(B), Sreeja(G), Anil(B), Pooja(G), Aditya(B)  →  3B + 2G
+//   Sick in hostel (2): Anusha(G), Kiran(B)                      →  1B + 1G
+//   Present: 85 − 3 − 1 = 81 boys ; 65 − 2 − 1 = 62 girls
 export const STUDENT_STATE = {
-  presentBoys: 82,
-  presentGirls: 61,
   enrolledBoys: 85,
   enrolledGirls: 65,
-  onOuting: 7,           // includes regular + special + sick-pickup outings
-  sickInHostel: 2,       // resting in hostel only
-  missing: 0,            // present + outing + sick = 150
+  presentBoys: 81,
+  presentGirls: 62,
+  onOuting: 5,
+  sickInHostel: 2,
+  missing: 0,            // 81 + 62 + 5 + 2 = 150 ✓
 };
 
 export const PENDING_APPROVALS = [
