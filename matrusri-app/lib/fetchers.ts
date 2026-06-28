@@ -158,6 +158,21 @@ export async function getTaskInstance(id: string) {
   return data;
 }
 
+export async function getOpenLaundryIssues() {
+  const sb = serviceClient();
+  const { data, error } = await sb
+    .from("laundry_issues")
+    .select(`
+      *,
+      student:students(name, class, dorm),
+      creator:users!created_by(name)
+    `)
+    .is("cleared_at", null)
+    .order("created_at", { ascending: false });
+  if (error) return [];
+  return data ?? [];
+}
+
 export async function getOuting(id: string) {
   const sb = serviceClient();
   const { data, error } = await sb

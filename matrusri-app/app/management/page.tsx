@@ -143,6 +143,24 @@ export default async function ManagementToday() {
           </div>
         </div>
 
+        {/* Laundry issues card — always shown */}
+        <Link href="/warden/laundry" className="block no-underline text-inherit mb-4">
+          <div
+            className={`bg-white border border-slate-200 rounded-xl p-3 flex items-center border-l-4 ${
+              d.laundryIssues > 0 ? "border-l-amber-500" : "border-l-emerald-500"
+            }`}
+          >
+            <div className="text-2xl mr-3">🧺</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-slate-500">Laundry issues</div>
+              <div className={`text-lg font-bold ${d.laundryIssues > 0 ? "text-amber-700" : "text-emerald-600"}`}>
+                {d.laundryIssues === 0 ? "All clear" : `${d.laundryIssues} open`}
+              </div>
+            </div>
+            <span className="text-slate-400 ml-2">›</span>
+          </div>
+        </Link>
+
         <div className="flex justify-between items-center mt-2 mb-3">
           <div className="text-xs uppercase tracking-wider font-semibold text-slate-500">
             Needs attention ({d.alerts.length})

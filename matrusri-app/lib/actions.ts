@@ -522,26 +522,60 @@ export async function updateTaskTemplate(form: FormData) {
 }
 
 // ============================================================================
-// LAUNDRY (simple pending counter)
+// LAUNDRY (problem students only)
 // ============================================================================
 
-export async function setLaundryPending(count: number) {
+export async function addLaundryIssue(opts: {
+  studentId: string;
+  itemCount: number;
+  issueType: "missing" | "damaged" | "uncollected" | "other";
+  note?: string;
+}) {
   const me = await getCurrentUser();
   if (!me) denied();
   if (me!.role !== "warden" && me!.role !== "management") denied();
-  if (count < 0) throw new Error("Count cannot be negative");
+  if (opts.itemCount < 1) throw new Error("Item count must be at least 1");
+
+  const sb = serviceClient();
+  const { data, error } = await sb
+    .from("laundry_issues")
+    .insert({
+      student_id: opts.studentId,
+      item_count: opts.itemCount,
+      issue_type: opts.issueType,
+      note: opts.note ?? null,
+      created_by: me!.id,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+
+  await logAudit(me!.id, "laundry.issue_added", "laundry_issues", data.id, {
+    student_id: opts.studentId,
+    issue_type: opts.issueType,
+    item_count: opts.itemCount,
+  });
+  revalidatePath("/warden/laundry");
+  revalidatePath("/management");
+}
+
+export async function clearLaundryIssue(issueId: string, note?: string) {
+  const me = await getCurrentUser();
+  if (!me) denied();
+  if (me!.role !== "warden" && me!.role !== "management") denied();
 
   const sb = serviceClient();
   const { error } = await sb
-    .from("laundry_state")
+    .from("laundry_issues")
     .update({
-      pending_count: count,
-      last_updated_at: new Date().toISOString(),
-      last_updated_by: me!.id,
+      cleared_at: new Date().toISOString(),
+      cleared_by: me!.id,
+      cleared_note: note ?? null,
     })
-    .eq("id", 1);
+    .eq("id", issueId);
+
   if (error) throw error;
-  await logAudit(me!.id, "laundry.pending_updated", "laundry_state", null, { count });
+  await logAudit(me!.id, "laundry.issue_cleared", "laundry_issues", issueId);
   revalidatePath("/warden/laundry");
   revalidatePath("/management");
 }

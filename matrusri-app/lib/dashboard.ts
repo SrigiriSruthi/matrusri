@@ -28,6 +28,7 @@ export type DashboardSummary = {
     takenAt: string;
     verified: boolean;
   } | null;
+  laundryIssues: number;
   alerts: Array<{
     id: string;
     severity: "red" | "yellow";
@@ -145,6 +146,18 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   }
   const attendanceRemaining = 5 - attendanceDueSoFar;
 
+  // Laundry issues open count (graceful if table doesn't exist yet)
+  let laundryIssues = 0;
+  try {
+    const { data: l } = await sb
+      .from("laundry_issues")
+      .select("id")
+      .is("cleared_at", null);
+    laundryIssues = l?.length ?? 0;
+  } catch {
+    laundryIssues = 0;
+  }
+
   // Open alerts
   const { data: alertsRaw } = await sb
     .from("alerts")
@@ -179,6 +192,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
       sickInHostel,
       missing,
     },
+    laundryIssues,
     latestAttendance: attRow
       ? {
           slot: attRow.slot_number,

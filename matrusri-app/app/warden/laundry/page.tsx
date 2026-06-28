@@ -1,7 +1,7 @@
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import { guardRole } from "@/lib/guard";
-import { serviceClient } from "@/lib/supabase";
+import { getOpenLaundryIssues, getActiveStudents } from "@/lib/fetchers";
 import LaundryClient from "./LaundryClient";
 
 export const dynamic = "force-dynamic";
@@ -14,39 +14,30 @@ const WARDEN_NAV = [
   { href: "/warden/me", icon: "👤", label: "Me" },
 ];
 
-async function getLaundryState() {
-  const sb = serviceClient();
-  const { data, error } = await sb
-    .from("laundry_state")
-    .select("pending_count, last_updated_at, last_updated_by, last_updater:users!last_updated_by(name)")
-    .eq("id", 1)
-    .maybeSingle();
-  if (error) {
-    // Table may not exist yet (migration not run)
-    return null;
-  }
-  return data as {
-    pending_count: number;
-    last_updated_at: string;
-    last_updated_by: string | null;
-    last_updater: { name: string } | null;
-  } | null;
-}
-
 export default async function LaundryPage() {
   await guardRole(["warden", "management"]);
-  const state = await getLaundryState();
+  const issues = await getOpenLaundryIssues();
+  const students = await getActiveStudents();
+
+  type Issue = {
+    id: string;
+    item_count: number;
+    issue_type: string;
+    note: string | null;
+    created_at: string;
+    student: { name: string; class: string; dorm: string } | null;
+    creator: { name: string } | null;
+  };
 
   return (
     <div className="min-h-screen pb-24">
-      <PhoneHeader back="/warden" title="Laundry" subtitle="Pending pickup" />
+      <PhoneHeader back="/warden" title="Laundry" subtitle={`${issues.length} open issue${issues.length === 1 ? "" : "s"}`} />
 
       <div className="p-4">
         <LaundryClient
-          pendingCount={state?.pending_count ?? 0}
-          lastUpdatedAt={state?.last_updated_at ?? null}
-          lastUpdatedBy={state?.last_updater?.name ?? null}
-          available={state !== null}
+          issues={(issues as unknown as Issue[]) ?? []}
+          students={students.map((s) => ({ id: s.id, name: s.name, class: s.class }))}
+          tableAvailable={true}
         />
       </div>
 

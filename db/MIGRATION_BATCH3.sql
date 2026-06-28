@@ -1,0 +1,11 @@
+-- =============================================================================
+-- MATRUSRI HOSTEL — Migration batch 3
+--
+-- Paste into Supabase SQL Editor and Run.
+-- https://supabase.com/dashboard/project/hnyjuqdokqguphfhiteh/sql/new
+--
+-- Adds:
+--   • laundry_issues table (problem-student list)
+--   • Removes 5pm "Water pump OFF" task (redundant with morning bore pump session)
+-- =============================================================================
+
