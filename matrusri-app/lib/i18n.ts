@@ -15,10 +15,10 @@ export const LANG_LABEL: Record<Lang, string> = {
 // Each key maps to { en, te, hi }. Lookup by key + user's language.
 export const T: Record<string, Record<Lang, string>> = {
   // ── Task names (19) ────────────────────────────────────────────────
-  "Lights / fans / main switch OFF": {
-    en: "Lights / fans / main switch OFF",
-    te: "ఫ్యాన్లు, మెయిన్ స్విచ్ ఆఫ్ చేయండి",
-    hi: "पंखे और मेन स्विच बंद करें",
+  "Fans OFF": {
+    en: "Fans OFF",
+    te: "ఫ్యాన్లు ఆఫ్ చేయండి",
+    hi: "पंखे बंद करें",
   },
   "Bore pump ON": {
     en: "Bore pump ON",

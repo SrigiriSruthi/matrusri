@@ -63,7 +63,7 @@ declare
 begin
   insert into public.task_templates (name, slot_time, window_start, window_end, proof_type, default_assignee_id, sort_order)
   values
-    ('Lights / fans / main switch OFF', '05:00', '05:00', '07:00', 'tap',   lakshmi_id, 1),
+    ('Fans OFF', '05:00', '05:00', '07:00', 'tap',   lakshmi_id, 1),
     ('Bore pump ON',                    '05:00', '04:50', '05:30', 'photo', lakshmi_id, 2),
     ('Yoga photo',                      '05:30', '05:15', '07:45', 'photo', suresh_id,  3),
     ('Bore pump OFF',                   '06:00', '05:50', '06:30', 'photo', lakshmi_id, 4),
