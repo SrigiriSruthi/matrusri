@@ -197,55 +197,25 @@ export async function markSickParentCalled(sickLogId: string, type: "primary" | 
   revalidatePath("/management");
 }
 
-export async function setSickOutcome(sickLogId: string, outcome: "resting" | "sent_home" | "at_doctor" | "recovered") {
+export async function markSickRecovered(sickLogId: string) {
   const me = await getCurrentUser();
   if (!me) denied();
 
   const sb = serviceClient();
   const now = new Date().toISOString();
-
-  const updates: Record<string, unknown> = {
-    outcome,
-    outcome_set_at: now,
-    outcome_set_by: me!.id,
-  };
-
-  // Terminal outcomes close the sick log
-  if (outcome === "recovered" || outcome === "sent_home") {
-    updates.status = "closed";
-    updates.closed_at = now;
-  }
-
-  const { data: existing } = await sb
+  const { error } = await sb
     .from("sick_logs")
-    .select("student_id")
-    .eq("id", sickLogId)
-    .single();
+    .update({
+      outcome: "recovered",
+      outcome_set_at: now,
+      outcome_set_by: me!.id,
+      status: "closed",
+      closed_at: now,
+    })
+    .eq("id", sickLogId);
 
-  const { error } = await sb.from("sick_logs").update(updates).eq("id", sickLogId);
   if (error) throw error;
-
-  // "Sent home" auto-creates an outing in pending_approval state
-  if (outcome === "sent_home" && existing) {
-    const { data: outing } = await sb
-      .from("outings")
-      .insert({
-        student_id: existing.student_id,
-        type: "sick_pickup",
-        reason: "sick",
-        reason_note: "Triggered from sick log — sent home",
-        requested_by: me!.id,
-        status: "pending_approval",
-        linked_sick_log_id: sickLogId,
-      })
-      .select("id")
-      .single();
-    if (outing) {
-      await sb.from("sick_logs").update({ triggered_outing_id: outing.id }).eq("id", sickLogId);
-    }
-  }
-
-  await logAudit(me!.id, `sick.outcome_${outcome}`, "sick_logs", sickLogId);
+  await logAudit(me!.id, "sick.recovered", "sick_logs", sickLogId);
   revalidatePath("/warden/sick");
   revalidatePath("/warden");
   revalidatePath("/management");
