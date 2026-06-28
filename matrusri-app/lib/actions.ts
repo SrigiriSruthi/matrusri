@@ -552,6 +552,31 @@ export async function updateTaskTemplate(form: FormData) {
 }
 
 // ============================================================================
+// LAUNDRY (simple pending counter)
+// ============================================================================
+
+export async function setLaundryPending(count: number) {
+  const me = await getCurrentUser();
+  if (!me) denied();
+  if (me!.role !== "warden" && me!.role !== "management") denied();
+  if (count < 0) throw new Error("Count cannot be negative");
+
+  const sb = serviceClient();
+  const { error } = await sb
+    .from("laundry_state")
+    .update({
+      pending_count: count,
+      last_updated_at: new Date().toISOString(),
+      last_updated_by: me!.id,
+    })
+    .eq("id", 1);
+  if (error) throw error;
+  await logAudit(me!.id, "laundry.pending_updated", "laundry_state", null, { count });
+  revalidatePath("/warden/laundry");
+  revalidatePath("/management");
+}
+
+// ============================================================================
 // GENERATE TODAY'S TASK INSTANCES (button instead of cron)
 // ============================================================================
 

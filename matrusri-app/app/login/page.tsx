@@ -96,8 +96,10 @@ export default function LoginPage() {
         <div className="mt-auto pt-6 text-xs text-slate-400 text-center space-y-1">
           <div>Demo users:</div>
           <div className="font-mono">
-            lakshmi / priya / suresh / ramesh / rajesh
+            lakshmi · priya · ramesh (wardens)
           </div>
+          <div className="font-mono">suresh · sruthi (staff)</div>
+          <div className="font-mono">rajesh · jaya (management)</div>
           <div>Password: <span className="font-mono">matrusri</span></div>
         </div>
       </form>
