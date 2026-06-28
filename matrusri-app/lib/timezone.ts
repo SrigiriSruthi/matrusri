@@ -68,3 +68,52 @@ export function todayAtIST(hour: number, minute: number = 0): string {
   // Convert back to UTC by subtracting the offset
   return new Date(istDate.getTime() - IST_OFFSET_MS).toISOString();
 }
+
+/**
+ * Parse a "HH:MM" or "HH:MM:SS" string to total minutes since midnight.
+ */
+export function parseHHMM(s: string): number {
+  if (!s) return 0;
+  const parts = s.split(":");
+  const h = parseInt(parts[0]) || 0;
+  const m = parseInt(parts[1]) || 0;
+  return h * 60 + m;
+}
+
+/**
+ * Check whether the current IST time is inside [windowStart, windowEnd].
+ * Returns:
+ *   - "before"  if not yet open
+ *   - "open"    if currently inside the window
+ *   - "after"   if window has closed
+ */
+export function windowState(
+  windowStart: string,
+  windowEnd: string
+): "before" | "open" | "after" {
+  const now = nowIST().totalMinutes;
+  const start = parseHHMM(windowStart);
+  const end = parseHHMM(windowEnd);
+  if (now < start) return "before";
+  if (now > end) return "after";
+  return "open";
+}
+
+/**
+ * Returns a human-friendly "Window opens in 2 hr 15 min" / "Window closes in 18 min" message.
+ */
+export function windowMessage(windowStart: string, windowEnd: string): string {
+  const now = nowIST().totalMinutes;
+  const start = parseHHMM(windowStart);
+  const end = parseHHMM(windowEnd);
+  const fmt = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h === 0) return `${m} min`;
+    if (m === 0) return `${h} hr`;
+    return `${h} hr ${m} min`;
+  };
+  if (now < start) return `Window opens in ${fmt(start - now)}`;
+  if (now > end) return `Window closed (${fmt(now - end)} ago)`;
+  return `Window closes in ${fmt(end - now)}`;
+}

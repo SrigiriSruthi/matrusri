@@ -10,7 +10,32 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "./auth";
 import { serviceClient } from "./supabase";
-import { todayIST } from "./timezone";
+import { todayIST, windowState } from "./timezone";
+
+async function assertWindowOpen(taskInstanceId: string) {
+  const sb = serviceClient();
+  const { data, error } = await sb
+    .from("task_instances")
+    .select("status, template:task_templates(window_start, window_end)")
+    .eq("id", taskInstanceId)
+    .maybeSingle();
+  if (error || !data) throw new Error("Task not found.");
+
+  type R = { status: string; template: { window_start: string; window_end: string } | null };
+  const row = data as unknown as R;
+  if (row.status === "done") {
+    throw new Error("This task is already done.");
+  }
+  if (!row.template) return;
+
+  const state = windowState(row.template.window_start, row.template.window_end);
+  if (state === "before") {
+    throw new Error("Too early — this task's window hasn't opened yet.");
+  }
+  if (state === "after") {
+    throw new Error("Too late — this task's window has closed.");
+  }
+}
 
 function denied() {
   throw new Error("Not authorized");
@@ -35,6 +60,8 @@ export async function markTaskTapDone(taskInstanceId: string, note?: string) {
   const me = await getCurrentUser();
   if (!me) denied();
 
+  await assertWindowOpen(taskInstanceId);
+
   const sb = serviceClient();
   const { error } = await sb
     .from("task_instances")
@@ -55,6 +82,8 @@ export async function markTaskTapDone(taskInstanceId: string, note?: string) {
 export async function submitTaskPhoto(taskInstanceId: string, photoUrl: string, note?: string) {
   const me = await getCurrentUser();
   if (!me) denied();
+
+  await assertWindowOpen(taskInstanceId);
 
   const sb = serviceClient();
   const { error } = await sb
