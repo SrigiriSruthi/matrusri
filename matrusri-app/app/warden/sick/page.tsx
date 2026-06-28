@@ -6,7 +6,7 @@ const WARDEN_NAV = [
   { href: "/warden/outing-new", icon: "🚪", label: "New outing" },
   { href: "/warden/sick", icon: "🤒", label: "Sick" },
   { href: "/warden/laundry", icon: "🧺", label: "Laundry" },
-  { href: "#me", icon: "👤", label: "Me" },
+  { href: "/warden/me", icon: "👤", label: "Me" },
 ];
 
 export default function SickBay() {

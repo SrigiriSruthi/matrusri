@@ -9,7 +9,7 @@ const WARDEN_NAV = [
   { href: "/warden/outing-new", icon: "🚪", label: "New outing" },
   { href: "/warden/sick", icon: "🤒", label: "Sick" },
   { href: "/warden/laundry", icon: "🧺", label: "Laundry" },
-  { href: "#me", icon: "👤", label: "Me" },
+  { href: "/warden/me", icon: "👤", label: "Me" },
 ];
 
 export default function WardenHome() {
@@ -53,7 +53,7 @@ export default function WardenHome() {
         </div>
 
         {AWAY_TODAY.map((o) => (
-          <Link href="#" key={o.id} className="no-underline text-inherit">
+          <Link href="/warden/outing-return" key={o.id} className="no-underline text-inherit">
             <div className="bg-white border border-slate-200 rounded-xl p-3 mb-2 flex items-center border-l-4 border-l-indigo-500">
               <div className="w-16 text-xs text-slate-500 font-semibold shrink-0">
                 {o.startedAt}

@@ -1,13 +1,14 @@
 import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
+import MgmtTabBar from "@/components/MgmtTabBar";
 import { SUMMARY, ACTIVE_ALERTS, HOSTEL_NAME } from "@/data/seed";
 
 const MGMT_NAV = [
   { href: "/management", icon: "📊", label: "Today" },
-  { href: "#trends", icon: "📈", label: "Trends" },
-  { href: "#wardens", icon: "👥", label: "Wardens" },
-  { href: "#settings", icon: "⚙️", label: "Settings" },
+  { href: "/management/trends", icon: "📈", label: "Trends" },
+  { href: "/management/wardens", icon: "👥", label: "Wardens" },
+  { href: "/management/settings", icon: "⚙️", label: "Settings" },
 ];
 
 function StatCard({
@@ -50,12 +51,7 @@ export default function ManagementToday() {
         rightSlot={<span className="opacity-50">🔔</span>}
       />
 
-      <div className="bg-slate-50 border-b border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto text-xs">
-        <span className="bg-blue-800 text-white px-3 py-1 rounded-full whitespace-nowrap">Today</span>
-        <span className="bg-white border border-slate-300 px-3 py-1 rounded-full text-slate-700">This week</span>
-        <span className="bg-white border border-slate-300 px-3 py-1 rounded-full text-slate-700">Wardens</span>
-        <span className="bg-white border border-slate-300 px-3 py-1 rounded-full text-slate-700">Settings</span>
-      </div>
+      <MgmtTabBar active="/management" />
 
       <div className="p-4">
         <div className="grid grid-cols-2 gap-3 mb-4">
@@ -93,7 +89,7 @@ export default function ManagementToday() {
           <div className="text-xs uppercase tracking-wider font-semibold text-slate-500">
             Needs attention ({ACTIVE_ALERTS.length})
           </div>
-          <Link href="#activity" className="text-xs text-blue-800 underline">
+          <Link href="/management/activity" className="text-xs text-blue-800 underline">
             Activity log →
           </Link>
         </div>

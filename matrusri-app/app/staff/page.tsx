@@ -5,8 +5,8 @@ import { PENDING_APPROVALS } from "@/data/seed";
 
 const STAFF_NAV = [
   { href: "/staff", icon: "✅", label: "Approvals" },
-  { href: "#history", icon: "📜", label: "History" },
-  { href: "#me", icon: "👤", label: "Me" },
+  { href: "/staff/history", icon: "📜", label: "History" },
+  { href: "/staff/me", icon: "👤", label: "Me" },
 ];
 
 const REASON_CHIPS = [
