@@ -70,13 +70,15 @@ export default async function ManagementToday() {
 
       <div className="p-4">
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <StatCard
-            label="Tasks"
-            value={`${d.tasksDone} of ${d.tasksDueSoFar}`}
-            subtitle={d.tasksMissed > 0 ? `🔴 ${d.tasksMissed} missed` : "✓ on track"}
-            subColor={d.tasksMissed > 0 ? "text-red-700" : "text-emerald-700"}
-            accent={d.tasksMissed > 0 ? "red" : "green"}
-          />
+          <Link href="/management/today-tasks" className="no-underline text-inherit">
+            <StatCard
+              label="Tasks"
+              value={`${d.tasksDone} of ${d.tasksDueSoFar}`}
+              subtitle={d.tasksMissed > 0 ? `🔴 ${d.tasksMissed} missed` : "✓ on track"}
+              subColor={d.tasksMissed > 0 ? "text-red-700" : "text-emerald-700"}
+              accent={d.tasksMissed > 0 ? "red" : "green"}
+            />
+          </Link>
           <StatCard
             label="Attendance"
             value={`${d.attendanceDone} of ${d.attendanceDueSoFar}`}
