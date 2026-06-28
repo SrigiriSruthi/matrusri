@@ -99,6 +99,12 @@ export default function OutingReturnClient({ atGate, active }: { atGate: OutingR
                 Left at {formatTime(o.started_at)}
                 {o.expected_return_at && <> · Expected by {formatTime(o.expected_return_at)}</>}
               </div>
+              {o.approver && (
+                <div className="text-xs text-slate-500 mt-1">
+                  Approved by {o.approver.name}
+                  {o.approved_at && <> at {formatTime(o.approved_at)}</>}
+                </div>
+              )}
               <button
                 onClick={() => markReturned(o.id, o.student?.name)}
                 className="w-full mt-3 bg-blue-800 text-white font-semibold py-3 rounded-lg"
