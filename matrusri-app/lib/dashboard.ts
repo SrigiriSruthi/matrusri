@@ -3,6 +3,7 @@
  */
 import { serviceClient } from "./supabase";
 import { todayIST, nowIST, formatTimeIST } from "./timezone";
+import { ensureTodayInstances } from "./ensureToday";
 
 export type DashboardSummary = {
   hostelName: string;
@@ -55,6 +56,7 @@ function relativeTime(iso: string): string {
 const SLOT_NAMES = ["", "Study hall", "School interval", "Lunch", "Afternoon", "Day close"];
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
+  await ensureTodayInstances();
   const sb = serviceClient();
   const today = todayIST();
 

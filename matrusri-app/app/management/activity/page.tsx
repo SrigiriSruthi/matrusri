@@ -1,7 +1,8 @@
+import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import { guardRole } from "@/lib/guard";
 import { getAuditLog } from "@/lib/fetchers";
-import { formatTimeIST } from "@/lib/timezone";
+import { formatTimeIST, todayIST, formatDateIST } from "@/lib/timezone";
 
 export const dynamic = "force-dynamic";
 
@@ -27,16 +28,47 @@ const ACTION_LABELS: Record<string, { icon: string; label: string }> = {
   "user.deactivated":       { icon: "👤", label: "User deactivated" },
   "user.activated":         { icon: "👤", label: "User reactivated" },
   "user.password_changed":  { icon: "🔒", label: "Password changed" },
+  "user.language_changed":  { icon: "🌐", label: "Language changed" },
   "task_instances.generated": { icon: "⚙️", label: "Today's tasks generated" },
+  "task_template.updated":  { icon: "🕒", label: "Task template updated" },
+  "task_template.reassigned": { icon: "🕒", label: "Task reassigned" },
+  "laundry.issue_added":    { icon: "🧺", label: "Laundry issue reported" },
+  "laundry.issue_cleared":  { icon: "🧺", label: "Laundry issue cleared" },
 };
 
 function formatTime(iso: string) {
   return formatTimeIST(iso);
 }
 
-export default async function ActivityLog() {
+function shiftDate(dateStr: string, days: number): string {
+  // dateStr is YYYY-MM-DD
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function prettyDateLabel(dateStr: string, todayStr: string): string {
+  if (dateStr === todayStr) return "Today";
+  const yesterday = shiftDate(todayStr, -1);
+  if (dateStr === yesterday) return "Yesterday";
+  // Otherwise format as e.g. "27 Jun"
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return formatDateIST(date);
+}
+
+export default async function ActivityLog({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
   await guardRole("management");
-  const log = await getAuditLog({ limit: 200 });
+  const { date: rawDate } = await searchParams;
+  const today = todayIST();
+  const date = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : today;
+
+  const log = await getAuditLog({ limit: 500, date });
 
   type Row = {
     id: string;
@@ -49,14 +81,55 @@ export default async function ActivityLog() {
   };
   const rows = (log as unknown as Row[]) ?? [];
 
+  const prevHref = `/management/activity?date=${shiftDate(date, -1)}`;
+  const nextHref = `/management/activity?date=${shiftDate(date, 1)}`;
+  const isToday = date === today;
+
   return (
     <div className="min-h-screen pb-24">
-      <PhoneHeader back="/management" title="Activity log" subtitle="Today · all events" />
+      <PhoneHeader
+        back="/management"
+        title="Activity log"
+        subtitle={`${prettyDateLabel(date, today)} · ${rows.length} event${rows.length === 1 ? "" : "s"}`}
+      />
+
+      <div className="bg-slate-50 border-b border-slate-200 px-4 py-2 flex items-center justify-between gap-2">
+        <Link
+          href={prevHref}
+          className="px-3 py-1 rounded-full text-xs bg-white border border-slate-300 text-slate-700 no-underline"
+        >
+          ← Previous day
+        </Link>
+        <form action="/management/activity" method="get" className="flex items-center gap-2">
+          <input
+            type="date"
+            name="date"
+            defaultValue={date}
+            max={today}
+            className="border border-slate-300 rounded px-2 py-1 text-xs bg-white"
+          />
+          <button type="submit" className="text-xs bg-blue-800 text-white px-3 py-1 rounded-full">
+            Go
+          </button>
+        </form>
+        {isToday ? (
+          <span className="px-3 py-1 rounded-full text-xs bg-slate-200 text-slate-400">
+            Today (latest) →
+          </span>
+        ) : (
+          <Link
+            href={nextHref}
+            className="px-3 py-1 rounded-full text-xs bg-white border border-slate-300 text-slate-700 no-underline"
+          >
+            Next day →
+          </Link>
+        )}
+      </div>
 
       <div className="p-4">
         {rows.length === 0 && (
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center text-sm text-slate-500">
-            No activity yet today. Actions will appear here as they happen.
+            No activity recorded for this date.
           </div>
         )}
         {rows.map((e) => {
@@ -81,7 +154,7 @@ export default async function ActivityLog() {
           );
         })}
         <div className="text-[11px] text-slate-400 text-center mt-4">
-          Live from Supabase · text records kept forever · photos 30 days
+          Text records kept forever · photos auto-delete after 30 days
         </div>
       </div>
     </div>

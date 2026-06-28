@@ -113,9 +113,14 @@ export async function getAuditLog(opts: { limit?: number; date?: string } = {}) 
     .limit(limit);
 
   if (opts.date) {
-    const start = `${opts.date}T00:00:00Z`;
-    const end = `${opts.date}T23:59:59Z`;
-    q = q.gte("created_at", start).lte("created_at", end);
+    // The date is an IST calendar date (YYYY-MM-DD). Convert to UTC bounds:
+    // IST is UTC+5:30, so IST midnight = previous UTC 18:30.
+    const [y, m, d] = opts.date.split("-").map(Number);
+    const istStart = new Date(Date.UTC(y, m - 1, d, 0, 0, 0)).getTime() - 5.5 * 60 * 60 * 1000;
+    const istEnd   = new Date(Date.UTC(y, m - 1, d, 23, 59, 59)).getTime() - 5.5 * 60 * 60 * 1000;
+    q = q
+      .gte("created_at", new Date(istStart).toISOString())
+      .lte("created_at", new Date(istEnd).toISOString());
   }
 
   const { data, error } = await q;

@@ -5,6 +5,7 @@ import { serviceClient } from "./supabase";
 import type { Task } from "./types";
 import { iconForTask } from "./i18n";
 import { todayIST, formatTimeIST } from "./timezone";
+import { ensureTodayInstances } from "./ensureToday";
 
 function formatSlotTime(t: string) {
   // "06:30:00" -> "6:30 am"
@@ -26,6 +27,7 @@ function formatWindow(start: string, end: string) {
 }
 
 export async function getWardenToday(wardenId?: string): Promise<Task[]> {
+  await ensureTodayInstances();
   const sb = serviceClient();
   const today = todayIST();
 
