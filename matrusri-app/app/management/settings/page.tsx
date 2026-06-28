@@ -11,7 +11,7 @@ const MGMT_NAV = [
 ];
 
 const SECTIONS = [
-  { icon: "🎓", title: "Students", desc: "Add, edit, deactivate · 150 active", href: "#" },
+  { icon: "🎓", title: "Students", desc: "Add, edit, deactivate", href: "/management/settings/students" },
   { icon: "👥", title: "Users (wardens, staff, management)", desc: "Manage roles and phones · 10 active", href: "#" },
   { icon: "✅", title: "Outing approvers", desc: "Currently: Suresh, Lakshmi, Priya", href: "#" },
   { icon: "🕒", title: "Daily schedule", desc: "16 tasks · time windows · per-warden assignment", href: "#" },

@@ -11,3 +11,4 @@ out/
 
 # Logs
 *.log
+.env.local
