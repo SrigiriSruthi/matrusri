@@ -24,10 +24,48 @@ function formatTime(iso: string | null) {
   return `${h}:${m.toString().padStart(2, "0")} ${a}`;
 }
 
+function formatExpected(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const now = new Date();
+  // Same calendar day?
+  if (d.toDateString() === now.toDateString()) {
+    return formatTime(iso);
+  }
+  // Tomorrow?
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  if (d.toDateString() === tomorrow.toDateString()) {
+    return `Tomorrow ${formatTime(iso)}`;
+  }
+  // Other date — show short date + time
+  const day = d.getDate();
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${day} ${months[d.getMonth()]} ${formatTime(iso)}`;
+}
+
 function typeLabel(t: string) {
   if (t === "sick_pickup") return "🏥 Sent home sick";
   if (t === "special") return "⚠️ Special outing";
   return "📅 Regular outing";
+}
+
+function ExceptionBadge({ type }: { type: string }) {
+  if (type === "special") {
+    return (
+      <span className="inline-block ml-2 text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold uppercase">
+        Non-2nd-Saturday
+      </span>
+    );
+  }
+  if (type === "sick_pickup") {
+    return (
+      <span className="inline-block ml-2 text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-semibold uppercase">
+        Sick exception
+      </span>
+    );
+  }
+  return null;
 }
 
 export default function OutingReturnClient({ atGate, active }: { atGate: OutingRow[]; active: OutingRow[] }) {
@@ -58,6 +96,7 @@ export default function OutingReturnClient({ atGate, active }: { atGate: OutingR
             >
               <div className="font-bold">
                 {typeLabel(o.type)} · {o.student?.name} · Class {o.student?.class}
+                <ExceptionBadge type={o.type} />
               </div>
               {o.reason_note && (
                 <div className="text-xs text-slate-500 mt-1">&ldquo;{o.reason_note}&rdquo;</div>
@@ -91,13 +130,14 @@ export default function OutingReturnClient({ atGate, active }: { atGate: OutingR
             >
               <div className="font-bold">
                 {typeLabel(o.type)} · {o.student?.name} · Class {o.student?.class}
+                <ExceptionBadge type={o.type} />
               </div>
               {o.reason_note && (
                 <div className="text-xs text-slate-500 mt-1">&ldquo;{o.reason_note}&rdquo;</div>
               )}
               <div className="text-xs text-slate-500 mt-1">
                 Left at {formatTime(o.started_at)}
-                {o.expected_return_at && <> · Expected by {formatTime(o.expected_return_at)}</>}
+                {o.expected_return_at && <> · Expected by {formatExpected(o.expected_return_at)}</>}
               </div>
               {o.approver && (
                 <div className="text-xs text-slate-500 mt-1">

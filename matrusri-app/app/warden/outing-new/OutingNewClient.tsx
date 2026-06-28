@@ -21,9 +21,27 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
   // Simplified: just sick vs outing
   const [outingKind, setOutingKind] = useState<"sick" | "outing">("outing");
   const [reasonText, setReasonText] = useState("");
+  // Default expected return: today at 9:00 pm
+  const todayYmd = (() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  })();
+  const [returnDate, setReturnDate] = useState(todayYmd);
   const [returnTime, setReturnTime] = useState("21:00");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function shiftDate(days: number) {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    setReturnDate(`${y}-${m}-${day}`);
+  }
 
   // 2nd Saturday is the regular outing day. Otherwise it's flagged for management.
   const isSpecialDay = !is2ndSaturday();
@@ -40,9 +58,8 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
     setBusy(true);
     setError(null);
     try {
-      const today = new Date().toISOString().slice(0, 10);
       const [hh, mm] = returnTime.split(":");
-      const exp = `${today}T${hh}:${mm}:00`;
+      const exp = `${returnDate}T${hh}:${mm}:00`;
 
       // Map our 2 user-facing types to the DB's 3 internal types:
       //  - sick + non-2nd-Saturday → sick_pickup (always exception)
@@ -151,13 +168,55 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-3 mb-4">
-            <label className="text-xs text-slate-500 block mb-1">Expected return time (today)</label>
-            <input
-              type="time"
-              value={returnTime}
-              onChange={(e) => setReturnTime(e.target.value)}
-              className="w-full border border-slate-300 rounded p-2 text-sm"
-            />
+            <label className="text-xs text-slate-500 block mb-2">Expected return</label>
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => shiftDate(0)}
+                className={`flex-1 py-2 rounded text-xs font-semibold border ${
+                  returnDate === todayYmd
+                    ? "bg-blue-800 text-white border-blue-800"
+                    : "bg-slate-50 text-slate-700 border-slate-300"
+                }`}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => shiftDate(1)}
+                className={`flex-1 py-2 rounded text-xs font-semibold border bg-slate-50 text-slate-700 border-slate-300`}
+              >
+                Tomorrow
+              </button>
+              <button
+                type="button"
+                onClick={() => shiftDate(2)}
+                className={`flex-1 py-2 rounded text-xs font-semibold border bg-slate-50 text-slate-700 border-slate-300`}
+              >
+                +2 days
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[11px] text-slate-500 block mb-1">Date</label>
+                <input
+                  type="date"
+                  value={returnDate}
+                  min={todayYmd}
+                  onChange={(e) => setReturnDate(e.target.value)}
+                  className="w-full border border-slate-300 rounded p-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-500 block mb-1">Time</label>
+                <input
+                  type="time"
+                  value={returnTime}
+                  onChange={(e) => setReturnTime(e.target.value)}
+                  className="w-full border border-slate-300 rounded p-2 text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           {error && <div className="bg-red-50 border border-red-200 text-red-800 text-sm rounded p-3 mb-3">{error}</div>}

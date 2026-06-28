@@ -3,6 +3,12 @@ import PhoneHeader from "@/components/PhoneHeader";
 import { guardRole } from "@/lib/guard";
 import { createStudent } from "@/lib/actions";
 
+const CLASS_OPTIONS = [
+  "1st", "2nd", "3rd", "4th", "5th",
+  "6th", "7th", "8th", "9th", "10th",
+  "6th IIT", "7th IIT", "8th IIT", "9th IIT",
+];
+
 export default async function NewStudentPage() {
   await guardRole("management");
   return (
@@ -13,46 +19,37 @@ export default async function NewStudentPage() {
           <label className="block text-xs text-slate-500 mb-1">Name *</label>
           <input name="name" required className="w-full border border-slate-300 rounded p-2 text-sm" />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs text-slate-500 mb-1">Roll no</label>
-            <input name="roll_no" className="w-full border border-slate-300 rounded p-2 text-sm" />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-500 mb-1">Class *</label>
-            <input name="class" required className="w-full border border-slate-300 rounded p-2 text-sm" />
-          </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Class *</label>
+          <select name="class" required defaultValue="" className="w-full border border-slate-300 rounded p-2 text-sm bg-white">
+            <option value="" disabled>Pick a class…</option>
+            {CLASS_OPTIONS.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs text-slate-500 mb-1">Dorm *</label>
-            <input name="dorm" required className="w-full border border-slate-300 rounded p-2 text-sm" />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-500 mb-1">Gender *</label>
-            <select name="gender" required className="w-full border border-slate-300 rounded p-2 text-sm bg-white">
-              <option value="">Pick…</option>
-              <option value="boy">Boy</option>
-              <option value="girl">Girl</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Gender *</label>
+          <select name="gender" required defaultValue="" className="w-full border border-slate-300 rounded p-2 text-sm bg-white">
+            <option value="" disabled>Pick…</option>
+            <option value="boy">Boy</option>
+            <option value="girl">Girl</option>
+          </select>
         </div>
         <div className="h-px bg-slate-200" />
         <div>
-          <label className="block text-xs text-slate-500 mb-1">Parent name *</label>
+          <label className="block text-xs text-slate-500 mb-1">Mother&apos;s name *</label>
           <input name="parent_name" required className="w-full border border-slate-300 rounded p-2 text-sm" />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-1">Parent phone *</label>
+          <label className="block text-xs text-slate-500 mb-1">Father&apos;s phone number *</label>
           <input name="parent_phone" required placeholder="+91 98xxx xxxxx" className="w-full border border-slate-300 rounded p-2 text-sm" />
+          <div className="text-[11px] text-slate-500 mt-1">Primary contact for OTPs and emergencies</div>
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-1">Emergency contact name</label>
-          <input name="emergency_contact_name" className="w-full border border-slate-300 rounded p-2 text-sm" />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-500 mb-1">Emergency contact phone</label>
-          <input name="emergency_contact_phone" className="w-full border border-slate-300 rounded p-2 text-sm" />
+          <label className="block text-xs text-slate-500 mb-1">Mother&apos;s phone number (optional)</label>
+          <input name="emergency_contact_phone" placeholder="+91 98xxx xxxxx" className="w-full border border-slate-300 rounded p-2 text-sm" />
+          <div className="text-[11px] text-slate-500 mt-1">Backup contact if father is unreachable</div>
         </div>
 
         <button type="submit" className="w-full bg-blue-800 text-white font-semibold py-3 rounded-lg">

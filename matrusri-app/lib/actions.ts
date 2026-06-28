@@ -357,16 +357,13 @@ export async function createStudent(form: FormData) {
 
   const sb = serviceClient();
   const name = String(form.get("name") ?? "").trim();
-  const rollNo = String(form.get("roll_no") ?? "").trim() || null;
   const cls = String(form.get("class") ?? "").trim();
-  const dorm = String(form.get("dorm") ?? "").trim();
   const gender = String(form.get("gender") ?? "");
   const parentName = String(form.get("parent_name") ?? "").trim();
   const parentPhone = String(form.get("parent_phone") ?? "").trim();
-  const emergencyName = String(form.get("emergency_contact_name") ?? "").trim() || null;
   const emergencyPhone = String(form.get("emergency_contact_phone") ?? "").trim() || null;
 
-  if (!name || !cls || !dorm || !parentName || !parentPhone) {
+  if (!name || !cls || !parentName || !parentPhone) {
     throw new Error("Missing required fields");
   }
   if (gender !== "boy" && gender !== "girl") {
@@ -377,13 +374,12 @@ export async function createStudent(form: FormData) {
     .from("students")
     .insert({
       name,
-      roll_no: rollNo,
       class: cls,
-      dorm,
+      dorm: "",                    // legacy column — empty string until we drop NOT NULL
       gender,
-      parent_name: parentName,
-      parent_phone: parentPhone,
-      emergency_contact_name: emergencyName,
+      parent_name: parentName,     // mother's name per form
+      parent_phone: parentPhone,   // father's phone per form (primary contact)
+      emergency_contact_name: emergencyPhone ? "Mother" : null,
       emergency_contact_phone: emergencyPhone,
     })
     .select("id")
