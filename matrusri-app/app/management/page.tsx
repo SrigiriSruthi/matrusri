@@ -2,7 +2,7 @@ import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import MgmtTabBar from "@/components/MgmtTabBar";
-import { SUMMARY, ACTIVE_ALERTS, HOSTEL_NAME } from "@/data/seed";
+import { SUMMARY, ACTIVE_ALERTS, HOSTEL_NAME, LATEST_ATTENDANCE } from "@/data/seed";
 
 const MGMT_NAV = [
   { href: "/management", icon: "📊", label: "Today" },
@@ -84,6 +84,54 @@ export default function ManagementToday() {
             accent="red"
           />
         </div>
+
+        {/* Present strength */}
+        {(() => {
+          const a = LATEST_ATTENDANCE;
+          const totalEnrolled = a.enrolledBoys + a.enrolledGirls;
+          const totalPresent = a.presentBoys + a.presentGirls;
+          const missing = totalEnrolled - totalPresent - a.onOuting;
+          return (
+            <Link href="/warden/attendance" className="block no-underline text-inherit">
+              <div className="bg-white border border-slate-200 rounded-xl p-3 mb-4">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="text-xs text-slate-500">
+                    Present strength · Attendance #{a.slot} ({a.slotName})
+                    {a.verified && <span className="text-emerald-600 ml-1">✓ verified</span>}
+                  </div>
+                  <div className="text-[11px] text-slate-400">{a.takenAt}</div>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="text-center">
+                    <div className="text-[11px] text-slate-500">Boys</div>
+                    <div className="text-lg font-bold">
+                      {a.presentBoys}<span className="text-slate-400 text-sm">/{a.enrolledBoys}</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[11px] text-slate-500">Girls</div>
+                    <div className="text-lg font-bold">
+                      {a.presentGirls}<span className="text-slate-400 text-sm">/{a.enrolledGirls}</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[11px] text-slate-500">On outing</div>
+                    <div className="text-lg font-bold text-blue-700">{a.onOuting}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[11px] text-slate-500">Missing</div>
+                    <div className={`text-lg font-bold ${missing > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                      {missing}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-[11px] text-slate-400 text-center mt-2">
+                  Total enrolled: {totalEnrolled} · Total present: {totalPresent}
+                </div>
+              </div>
+            </Link>
+          );
+        })()}
 
         <div className="flex justify-between items-center mt-2 mb-3">
           <div className="text-xs uppercase tracking-wider font-semibold text-slate-500">

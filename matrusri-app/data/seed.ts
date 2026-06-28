@@ -72,6 +72,19 @@ export const SUMMARY = {
   outingsExceptional: 2,
 };
 
+export const LATEST_ATTENDANCE = {
+  slot: 3,
+  slotName: "Lunch",
+  takenAt: "2:15 pm",
+  verified: true,
+  enrolledBoys: 85,
+  enrolledGirls: 65,
+  presentBoys: 82,
+  presentGirls: 61,
+  onOuting: 7,
+  // computed: 150 - 82 - 61 - 7 = 0; we'll display missing properly below
+};
+
 export const PENDING_APPROVALS = [
   {
     id: "ap1",
