@@ -465,12 +465,72 @@ export async function createUser(form: FormData) {
 export async function toggleUserActive(userId: string, isActive: boolean) {
   const me = await getCurrentUser();
   if (!me || me.role !== "management") denied();
+  if (me!.id === userId) throw new Error("You can't deactivate yourself.");
 
   const sb = serviceClient();
+  let reassignedCount = 0;
+  let replacementName: string | null = null;
+
+  if (!isActive) {
+    // Q2(C): auto-reassign tasks + templates to the first other active warden
+    const { data: targetUser } = await sb
+      .from("users")
+      .select("role")
+      .eq("id", userId)
+      .single();
+
+    if (targetUser?.role === "warden") {
+      const { data: replacements } = await sb
+        .from("users")
+        .select("id, name")
+        .eq("role", "warden")
+        .eq("is_active", true)
+        .neq("id", userId)
+        .order("name")
+        .limit(1);
+
+      const replacement = replacements?.[0];
+      if (replacement) {
+        replacementName = replacement.name;
+
+        // Reassign template defaults
+        const { data: tmplRows } = await sb
+          .from("task_templates")
+          .update({ default_assignee_id: replacement.id })
+          .eq("default_assignee_id", userId)
+          .select("id");
+
+        // Reassign today's open task_instances (skip completed/missed — history preserved)
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: instRows } = await sb
+          .from("task_instances")
+          .update({ assigned_to: replacement.id })
+          .eq("assigned_to", userId)
+          .eq("date", today)
+          .in("status", ["pending", "open"])
+          .select("id");
+
+        reassignedCount = (tmplRows?.length ?? 0) + (instRows?.length ?? 0);
+      } else {
+        throw new Error(
+          "No other active warden available. Add another warden before deactivating this one."
+        );
+      }
+    }
+  }
+
   const { error } = await sb.from("users").update({ is_active: isActive }).eq("id", userId);
   if (error) throw error;
-  await logAudit(me!.id, isActive ? "user.activated" : "user.deactivated", "users", userId);
+
+  await logAudit(
+    me!.id,
+    isActive ? "user.activated" : "user.deactivated",
+    "users",
+    userId,
+    { reassigned: reassignedCount, replacement_name: replacementName }
+  );
   revalidatePath("/management/settings/users");
+  revalidatePath("/management/settings/schedule");
 }
 
 export async function resetUserPassword(userId: string, newPassword: string) {
@@ -490,6 +550,33 @@ export async function resetUserPassword(userId: string, newPassword: string) {
 // ============================================================================
 // TASK TEMPLATES (admin schedule)
 // ============================================================================
+
+export async function reassignTaskTemplate(templateId: string, newAssigneeId: string | null) {
+  const me = await getCurrentUser();
+  if (!me || me.role !== "management") denied();
+
+  const sb = serviceClient();
+  const { error } = await sb
+    .from("task_templates")
+    .update({ default_assignee_id: newAssigneeId })
+    .eq("id", templateId);
+  if (error) throw error;
+
+  // Also reassign today's open instances so the new warden sees it immediately
+  const today = new Date().toISOString().slice(0, 10);
+  await sb
+    .from("task_instances")
+    .update({ assigned_to: newAssigneeId })
+    .eq("template_id", templateId)
+    .eq("date", today)
+    .in("status", ["pending", "open"]);
+
+  await logAudit(me!.id, "task_template.reassigned", "task_templates", templateId, {
+    new_assignee_id: newAssigneeId,
+  });
+  revalidatePath("/management/settings/schedule");
+  revalidatePath("/warden");
+}
 
 export async function updateTaskTemplate(form: FormData) {
   const me = await getCurrentUser();
@@ -517,8 +604,20 @@ export async function updateTaskTemplate(form: FormData) {
     .eq("id", id);
 
   if (error) throw error;
+
+  // Also reassign today's open instances if the assignee changed
+  const today = new Date().toISOString().slice(0, 10);
+  await sb
+    .from("task_instances")
+    .update({ assigned_to: defaultAssignee })
+    .eq("template_id", id)
+    .eq("date", today)
+    .in("status", ["pending", "open"]);
+
   await logAudit(me!.id, "task_template.updated", "task_templates", id);
   revalidatePath("/management/settings/schedule");
+  revalidatePath("/warden");
+  redirect("/management/settings/schedule");
 }
 
 // ============================================================================

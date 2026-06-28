@@ -91,7 +91,15 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     .eq("id", sessionId)
     .maybeSingle();
 
-  if (error || !user || !user.is_active) return null;
+  if (error || !user || !user.is_active) {
+    // Stale session — try to clear cookie if possible (best effort; will fail in RSC)
+    try {
+      jar.delete(COOKIE_NAME);
+    } catch {
+      // RSCs can't mutate cookies — fine, middleware/route handlers will clear later
+    }
+    return null;
+  }
   return {
     id: user.id,
     name: user.name,

@@ -2,17 +2,21 @@ import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import { guardRole } from "@/lib/guard";
 import { getAllUsers } from "@/lib/fetchers";
-import { toggleUserActive } from "@/lib/actions";
+import UsersClient from "./UsersClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsersAdmin() {
-  await guardRole("management");
+  const me = await guardRole("management");
   const users = await getAllUsers();
 
   return (
     <div className="min-h-screen">
-      <PhoneHeader back="/management/settings" title="Users" subtitle={`${users.filter(u => u.is_active).length} active`} />
+      <PhoneHeader
+        back="/management/settings"
+        title="Users"
+        subtitle={`${users.filter((u) => u.is_active).length} active · ${users.length} total`}
+      />
 
       <div className="p-4">
         <Link
@@ -22,26 +26,17 @@ export default async function UsersAdmin() {
           ➕ Add user
         </Link>
 
-        {users.map((u) => (
-          <div key={u.id} className={`bg-white border border-slate-200 rounded-xl p-3 mb-2 flex items-center ${!u.is_active ? "opacity-60" : ""}`}>
-            <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center mr-3 shrink-0">
-              👤
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm">
-                {u.name} <span className="text-xs text-slate-400 ml-1">@{u.username}</span>
-              </div>
-              <div className="text-xs text-slate-500">
-                {u.role} · {u.phone}
-              </div>
-            </div>
-            <form action={async () => { "use server"; await toggleUserActive(u.id, !u.is_active); }}>
-              <button type="submit" className={`text-xs underline ml-2 ${u.is_active ? "text-red-700" : "text-emerald-700"}`}>
-                {u.is_active ? "Deactivate" : "Reactivate"}
-              </button>
-            </form>
-          </div>
-        ))}
+        <UsersClient
+          currentUserId={me.id}
+          users={users.map((u) => ({
+            id: u.id,
+            name: u.name,
+            username: u.username,
+            phone: u.phone,
+            role: u.role as "warden" | "staff" | "management",
+            is_active: u.is_active,
+          }))}
+        />
       </div>
     </div>
   );
