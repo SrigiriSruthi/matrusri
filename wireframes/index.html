@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hostel Management — Wireframes</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { padding: 24px; background: #f0f2f5; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { text-align: center; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #6b7280; margin-bottom: 32px; font-size: 14px; }
+  .role-section {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  .role-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .role-icon {
+    font-size: 28px;
+    margin-right: 12px;
+  }
+  .role-title { font-size: 20px; font-weight: 700; color: #111827; }
+  .role-meta { font-size: 12px; color: #6b7280; }
+  .role-desc { font-size: 14px; color: #4b5563; margin-bottom: 16px; line-height: 1.5; }
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .screen {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
+  }
+  .screen:hover { background: #eff6ff; border-color: #1e40af; }
+  .screen h3 { font-size: 15px; color: #1e40af; margin-bottom: 4px; }
+  .screen p { font-size: 12px; color: #6b7280; line-height: 1.4; }
+  .role-section.management { border-top: 4px solid #1e40af; }
+  .role-section.warden { border-top: 4px solid #10b981; }
+  .role-section.staff { border-top: 4px solid #f59e0b; }
+  .role-section.parent { border-top: 4px solid #6b7280; }
+  .stub {
+    background: #f3f4f6;
+    border: 1px dashed #d1d5db;
+    border-radius: 10px;
+    padding: 14px;
+    color: #9ca3af;
+  }
+  .stub h3 { font-size: 14px; color: #6b7280; margin-bottom: 4px; }
+  .stub p { font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Hostel Management — Wireframes</h1>
+  <p class="subtitle">Each role sees only their own screens in the real app. Below is grouped by role for review.</p>
+
+  <div class="role-section management">
+    <div class="role-header">
+      <span class="role-icon">👑</span>
+      <div>
+        <div class="role-title">Management</div>
+        <div class="role-meta">3 users · Read-everything, write-only-config · Bottom nav: Today · Trends · Wardens · Settings</div>
+      </div>
+    </div>
+    <p class="role-desc">
+      Doesn't touch the daily flow. Owns the dashboard, configures the schedule and approvers, reviews exceptions, and approves special-day outings only when escalated.
+    </p>
+    <div class="role-grid">
+      <a class="screen" href="management-dashboard.html">
+        <h3>📊 Today</h3>
+        <p>Live counters + red alerts and exceptions only. The main screen.</p>
+      </a>
+      <div class="stub">
+        <h3>📈 Trends (planned)</h3>
+        <p>Weekly/monthly — warden reliability, wastage patterns, attendance averages, vendor scorecard.</p>
+      </div>
+      <div class="stub">
+        <h3>👥 Wardens (planned)</h3>
+        <p>Per-warden scorecards + drill into a warden's full day with call/message buttons.</p>
+      </div>
+      <div class="stub">
+        <h3>📜 Activity log (planned)</h3>
+        <p>Full audit timeline of everything today — done + missed. Filters by warden / type.</p>
+      </div>
+      <div class="stub">
+        <h3>⚙️ Settings (planned)</h3>
+        <p>Students · Users · Approvers · Schedule · Pump sessions · Holiday calendar.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="role-section warden">
+    <div class="role-header">
+      <span class="role-icon">🧑‍🏫</span>
+      <div>
+        <div class="role-title">Warden</div>
+        <div class="role-meta">3–4 users · Do-the-work · Bottom nav: Tasks · Attendance · Sick · Laundry · Me</div>
+      </div>
+    </div>
+    <p class="role-desc">
+      Hands-on operators. Complete time-locked tasks, take 5 attendances, manage sick bay, distribute laundry, handle kitchen/supply/pump. Camera-only uploads, locked outside their window.
+    </p>
+    <div class="role-grid">
+      <a class="screen" href="warden-home.html">
+        <h3>📋 Today's tasks</h3>
+        <p>Time-ordered checklist with status badges. Tap any open task to act.</p>
+      </a>
+      <a class="screen" href="warden-task-action.html">
+        <h3>📸 Task action — Yoga photo</h3>
+        <p>Camera-only upload screen. Window countdown. No gallery access.</p>
+      </a>
+      <a class="screen" href="warden-attendance.html">
+        <h3>🔢 Attendance entry</h3>
+        <p>Count-based. Auto-tally and discrepancy check. Cross-warden verification at lunch.</p>
+      </a>
+      <a class="screen" href="warden-sick-bay.html">
+        <h3>🤒 Sick bay</h3>
+        <p>Add sick student. Track parent call. Set outcome (Resting / Sent home / Doctor / Recovered).</p>
+      </a>
+      <a class="screen" href="warden-laundry.html">
+        <h3>🧺 Laundry distribution</h3>
+        <p>Per-student give/hold during 9:00–9:30 pm window. Unclaimed flow for absent students.</p>
+      </a>
+      <a class="screen" href="warden-outing-new.html">
+        <h3>🚪 Start outing (3 steps)</h3>
+        <p>Parent at gate flow: pick student → parent OTP → reason + send to staff approvers.</p>
+      </a>
+      <div class="stub">
+        <h3>🚰 Pump session (planned)</h3>
+        <p>Live ON→OFF session card. Photo at each stage. Duration auto-tracked.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="role-section staff">
+    <div class="role-header">
+      <span class="role-icon">✅</span>
+      <div>
+        <div class="role-title">Staff approver</div>
+        <div class="role-meta">2–3 users · Gatekeeper · Bottom nav: Approvals · History · Me</div>
+      </div>
+    </div>
+    <p class="role-desc">
+      Single focused job: approve outings. Any one of them can release a student. For special-day outings, must pick a reason chip first. Read-only view of sick context when relevant.
+    </p>
+    <div class="role-grid">
+      <a class="screen" href="staff-approval.html">
+        <h3>✅ Approvals inbox</h3>
+        <p>Pending outings with parent OTP state. Reason chips. Approve / reject.</p>
+      </a>
+      <div class="stub">
+        <h3>📜 History (planned)</h3>
+        <p>All outings today/week/month. Read-only. Search by student.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="role-section parent">
+    <div class="role-header">
+      <span class="role-icon">👨‍👩‍👧</span>
+      <div>
+        <div class="role-title">Parent</div>
+        <div class="role-meta">Per student · No app login</div>
+      </div>
+    </div>
+    <p class="role-desc">
+      No app, no screens. Receives WhatsApp/SMS for sick reports and outing approvals. Verified via OTP at the gate for pickup.
+    </p>
+  </div>
+
+  <div class="role-section">
+    <div class="role-header">
+      <span class="role-icon">🎓</span>
+      <div>
+        <div class="role-title">Student</div>
+        <div class="role-meta">150 users · No app in Phase 1</div>
+      </div>
+    </div>
+    <p class="role-desc">
+      Phase 1: stored as a registry record only. Phase 4 (optional): read-only view of own laundry status and attendance — deferred until core flow is proven.
+    </p>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warden — Attendance #4</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a href="warden-home.html" class="nav-back">←</a>
+    <div style="flex:1; text-align:center;">
+      <h1>Attendance #4</h1>
+      <div class="sub">Afternoon attendance · 6:00 pm</div>
+    </div>
+    <span></span>
+  </div>
+
+  <div class="content">
+    <div class="note-bar">
+      ⏰ Window: 6:00 – 8:00 pm · Now 6:18 pm
+    </div>
+
+    <div class="card">
+      <div style="font-size:13px; color:#6b7280;">Total enrolled</div>
+      <div style="display:flex; justify-content:space-around; margin-top:10px;">
+        <div style="text-align:center;">
+          <div style="font-size:11px; color:#6b7280;">Boys</div>
+          <div style="font-size:24px; font-weight:700;">85</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:11px; color:#6b7280;">Girls</div>
+          <div style="font-size:24px; font-weight:700;">65</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:11px; color:#6b7280;">On approved<br>outing</div>
+          <div style="font-size:24px; font-weight:700; color:#1e40af;">7</div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#6b7280; text-align:center; margin-top:8px;">
+        Outing count auto-filled from approved requests
+      </div>
+    </div>
+
+    <div class="section-title">Present count</div>
+
+    <div class="count-grid">
+      <div class="field">
+        <label>Boys present</label>
+        <input type="number" value="78" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Girls present</label>
+        <input type="number" value="61" inputmode="numeric">
+      </div>
+    </div>
+
+    <div class="card" style="background:#f9fafb;">
+      <div style="display:flex; justify-content:space-between; font-size:13px;">
+        <span>Absent — with permission</span>
+        <strong>7</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:6px;">
+        <span>Absent — without permission</span>
+        <strong style="color:#ef4444;">4</strong>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex; justify-content:space-between; font-size:13px;">
+        <span>Check: 78 + 61 + 7 + 4</span>
+        <strong style="color:#10b981;">150 ✓</strong>
+      </div>
+    </div>
+
+    <button class="btn">📤 Submit</button>
+    <a href="warden-home.html" class="btn secondary">Cancel</a>
+  </div>
+</div>
+</body>
+</html>

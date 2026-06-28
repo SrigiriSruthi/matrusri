@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Management Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a href="index.html" class="nav-back">←</a>
+    <div style="flex:1; text-align:center;">
+      <h1>Today</h1>
+      <div class="sub">Matrusri Hostel · Sun 28 Jun · 5:42 pm</div>
+    </div>
+    <span style="opacity:0.4;">🔔</span>
+  </div>
+
+  <div class="nav-strip">
+    <a class="current" href="#">Today</a>
+    <a href="#">This week</a>
+    <a href="#">Wardens</a>
+    <a href="#">Settings</a>
+  </div>
+
+  <div class="content">
+    <div class="summary-grid">
+      <div class="stat green">
+        <div class="label">Tasks</div>
+        <div class="value">6 of 7</div>
+        <div style="font-size:11px; color:#991b1b; font-weight:600; margin-top:4px;">🔴 1 missed</div>
+        <div style="font-size:10px; color:#9ca3af; margin-top:2px;">5 more due later today</div>
+      </div>
+      <div class="stat blue">
+        <div class="label">Attendance</div>
+        <div class="value">3 of 3</div>
+        <div style="font-size:11px; color:#10b981; font-weight:600; margin-top:4px;">✓ on track</div>
+        <div style="font-size:10px; color:#9ca3af; margin-top:2px;">2 more due later today</div>
+      </div>
+      <div class="stat yellow">
+        <div class="label">Sick</div>
+        <div class="value">4</div>
+        <div style="font-size:11px; color:#92400e; font-weight:600; margin-top:4px;">2 resting · 2 sent</div>
+      </div>
+      <div class="stat red">
+        <div class="label">Outings</div>
+        <div class="value">2</div>
+        <div style="font-size:11px; color:#991b1b; font-weight:600; margin-top:4px;">⚠️ both exceptions</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Needs attention (4)</span>
+      <a href="#" style="font-size:11px; color:#1e40af; text-transform:none; letter-spacing:0; text-decoration:none;">Activity log →</a>
+    </div>
+
+    <div class="alert red">
+      <div class="dot"></div>
+      <div class="body">
+        <div class="title">🏥 Ravi (Class 8) — sent home sick</div>
+        <div class="meta">Fever, headache · Approved by Lakshmi · 6:32 pm</div>
+      </div>
+      <div class="time">Sick pickup</div>
+    </div>
+
+    <div class="alert red">
+      <div class="dot"></div>
+      <div class="body">
+        <div class="title">⚠️ Sreeja (Class 9) — special-day outing</div>
+        <div class="meta">Family event · father in town for lunch · 6:38 pm</div>
+      </div>
+      <div class="time">Special</div>
+    </div>
+
+    <div class="alert red">
+      <div class="dot"></div>
+      <div class="body">
+        <div class="title">Water pump OFF photo missing</div>
+        <div class="meta">Lakshmi · Due 5:00 pm</div>
+      </div>
+      <div class="time">42 min</div>
+    </div>
+
+    <div class="alert red">
+      <div class="dot"></div>
+      <div class="body">
+        <div class="title">Sick log — parent not called for Anusha</div>
+        <div class="meta">Class 6 · Reported 4:30 pm</div>
+      </div>
+      <div class="time">1h 12m</div>
+    </div>
+  </div>
+
+  <div class="bottomnav">
+    <a href="#" class="active"><span class="icon">📊</span><span>Today</span></a>
+    <a href="#"><span class="icon">📈</span><span>Trends</span></a>
+    <a href="#"><span class="icon">👥</span><span>Wardens</span></a>
+    <a href="#"><span class="icon">⚙️</span><span>Settings</span></a>
+  </div>
+</div>
+</body>
+</html>

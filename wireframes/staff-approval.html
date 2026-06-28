@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Staff — Outing Approval</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a href="index.html" class="nav-back">←</a>
+    <div style="flex:1; text-align:center;">
+      <h1>Outing Requests</h1>
+      <div class="sub">Suresh · Staff approver</div>
+    </div>
+    <span></span>
+  </div>
+
+  <div class="nav-strip">
+    <a class="current" href="#">Pending (2)</a>
+    <a href="#">Today</a>
+    <a href="#">History</a>
+  </div>
+
+  <div class="content">
+    <div class="outing-request">
+      <div class="student">Ravi Kumar · Class 8 · Dorm A</div>
+      <div class="parent">Mother: Sujatha · 📞 +91 98xxx xxxxx</div>
+      <div class="parent" style="margin-top:6px;">⏰ At gate 6:32 pm · 10 min ago</div>
+      <div style="margin-top:10px; padding:10px; background:#f0fdf4; border:1px solid #86efac; border-radius:6px; font-size:13px; color:#065f46;">
+        ✓ Parent OTP verified · 6:30 pm
+      </div>
+      <div class="approval-state">
+        ⚠️ Special-day request · Today is Wednesday (not 2nd Saturday)
+      </div>
+      <div style="margin-top:10px; font-size:13px; font-weight:600;">Pick reason (required):</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+        <span style="padding:6px 10px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:14px; font-size:12px;">🤒 Sick</span>
+        <span style="padding:6px 10px; background:#1e40af; color:white; border:1px solid #1e40af; border-radius:14px; font-size:12px;">👨‍👩‍👧 Family event ✓</span>
+        <span style="padding:6px 10px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:14px; font-size:12px;">🏥 Doctor visit</span>
+        <span style="padding:6px 10px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:14px; font-size:12px;">🚨 Emergency</span>
+        <span style="padding:6px 10px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:14px; font-size:12px;">📝 Other</span>
+      </div>
+      <input type="text" placeholder="Optional note (e.g., father in town for lunch)" value="Father in town, family lunch" style="width:100%; padding:10px; margin-top:10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;">
+      <div class="actions">
+        <button class="btn green" onclick="alert('Student released. Marked absent-with-permission. Reason: Family event. Surfaces as red block on management dashboard.')">✓ Approve</button>
+        <button class="btn danger">✗ Reject</button>
+      </div>
+      <div style="font-size:11px; color:#6b7280; margin-top:8px; text-align:center;">
+        Any one of 3 staff can approve. You + Lakshmi + Priya are configured.<br>
+        Approved special-day outings appear as 🔴 red blocks on management dashboard.
+      </div>
+    </div>
+
+    <div class="outing-request">
+      <div class="student">Sreeja Reddy · Class 9 · Dorm B</div>
+      <div class="parent">Father: Rajesh · 📞 +91 97xxx xxxxx</div>
+      <div class="parent" style="margin-top:6px;">⏰ At gate 6:38 pm · 4 min ago</div>
+      <div style="margin-top:10px; padding:10px; background:#fef3c7; border:1px solid #fde68a; border-radius:6px; font-size:13px; color:#92400e;">
+        ⏳ OTP sent, waiting for parent
+      </div>
+      <div class="actions">
+        <button class="btn disabled" disabled>✓ OTP needed first</button>
+        <button class="btn danger">✗ Reject</button>
+      </div>
+    </div>
+
+    <div class="section-title">Today's released</div>
+    <div class="card" style="opacity:0.75;">
+      <div style="font-weight:600;">Anil Kumar · Class 7</div>
+      <div style="font-size:13px; color:#6b7280;">✓ Approved by you · 4:12 pm · Returned 5:40 pm</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

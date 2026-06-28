@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warden — Sick Bay</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a href="warden-home.html" class="nav-back">←</a>
+    <div style="flex:1; text-align:center;">
+      <h1>Sick Bay</h1>
+      <div class="sub">4 active cases</div>
+    </div>
+    <span></span>
+  </div>
+
+  <div class="content">
+    <button class="btn" onclick="alert('Opens: pick student → enter symptoms → submit')">
+      ➕ Add sick student
+    </button>
+
+    <div class="section-title">Active</div>
+
+    <div class="card" style="border-left: 4px solid #ef4444;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:700;">Ravi · Class 8</div>
+          <div style="font-size:13px; color:#6b7280;">Fever, headache</div>
+        </div>
+        <span class="badge missed">Call parent</span>
+      </div>
+      <div style="margin-top:8px; font-size:12px; color:#6b7280;">
+        Reported at 4:30 pm · 1 hr 12 min ago
+      </div>
+      <div style="margin-top:10px; padding:10px; background:#fef2f2; border-radius:6px; font-size:13px; color:#991b1b;">
+        🔴 Over 1 hour — parent must be called now
+      </div>
+      <div style="margin-top:10px; padding:8px 10px; background:#f9fafb; border-radius:6px; font-size:13px;">
+        <div>📞 Mother (Sujatha): <span style="color:#1e40af;">+91 98xxx xxxxx</span></div>
+        <div style="margin-top:4px;">📞 Emergency (Uncle Ramesh): <span style="color:#1e40af;">+91 97xxx xxxxx</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn green">📞 Primary called</button>
+        <button class="btn secondary">📞 Emergency called</button>
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #f59e0b;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:700;">Anusha · Class 6</div>
+          <div style="font-size:13px; color:#6b7280;">Stomach ache</div>
+        </div>
+        <span class="badge open">Parent called</span>
+      </div>
+      <div style="margin-top:8px; font-size:12px; color:#6b7280;">
+        Reported at 3:15 pm · Parent called 3:45 pm
+      </div>
+      <div style="margin-top:10px; font-size:13px; font-weight:600;">Pick outcome:</div>
+      <div class="actions" style="flex-wrap:wrap;">
+        <button class="btn secondary" style="flex:1; min-width:48%;">🛏 Resting in hostel</button>
+        <button class="btn secondary" style="flex:1; min-width:48%;" onclick="alert('Will trigger outing flow: OTP + staff approval, then close sick log.')">🏠 Sent home</button>
+        <button class="btn secondary" style="flex:1; min-width:48%;">🏥 Sent to doctor</button>
+        <button class="btn green" style="flex:1; min-width:48%;">✓ Recovered</button>
+      </div>
+      <div style="font-size:11px; color:#6b7280; text-align:center; margin-top:6px;">
+        "Sent home" requires OTP + staff approval (same as any outing)
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #6366f1; opacity:0.85;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:700;">Kiran · Class 9</div>
+          <div style="font-size:13px; color:#6b7280;">Cold · 🛏 Resting in hostel</div>
+        </div>
+        <span class="badge done">Resting</span>
+      </div>
+      <div style="margin-top:8px; font-size:12px; color:#6b7280;">
+        Day 2 · Parent informed
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #6366f1; opacity:0.85;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:700;">Lahari · Class 7</div>
+          <div style="font-size:13px; color:#6b7280;">Fever · 🏠 Sent home 2:00 pm</div>
+        </div>
+        <span class="badge done">Sent home</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottomnav">
+    <a href="warden-home.html"><span class="icon">📋</span><span>Tasks</span></a>
+    <a href="warden-outing-new.html"><span class="icon">🚪</span><span>New outing</span></a>
+    <a href="#" class="active"><span class="icon">🤒</span><span>Sick</span></a>
+    <a href="warden-laundry.html"><span class="icon">🧺</span><span>Laundry</span></a>
+    <a href="#"><span class="icon">👤</span><span>Me</span></a>
+  </div>
+</div>
+</body>
+</html>
