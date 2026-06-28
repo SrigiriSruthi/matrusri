@@ -1,5 +1,8 @@
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
+import { guardRole } from "@/lib/guard";
+
+export const dynamic = "force-dynamic";
 
 const STAFF_NAV = [
   { href: "/staff", icon: "✅", label: "Approvals" },
@@ -29,7 +32,8 @@ const TYPE_TAG: Record<string, string> = {
   regular: "📅 Regular",
 };
 
-export default function StaffHistory() {
+export default async function StaffHistory() {
+  await guardRole(["staff", "management"]);
   return (
     <div className="min-h-screen pb-24">
       <PhoneHeader back="/staff" title="History" subtitle="Past outings" />

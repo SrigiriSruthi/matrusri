@@ -1,5 +1,8 @@
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
+import { guardRole } from "@/lib/guard";
+
+export const dynamic = "force-dynamic";
 
 const WARDEN_NAV = [
   { href: "/warden", icon: "📋", label: "Tasks" },
@@ -28,7 +31,8 @@ const DONE: Row[] = [
   { name: "Aditya · Class 7", meta: "4 items given · 9:04 pm · ⚠️ 1 missing reported", action: "complaint", done: "View" },
 ];
 
-export default function Laundry() {
+export default async function Laundry() {
+  await guardRole(["warden", "management"]);
   return (
     <div className="min-h-screen pb-24">
       <PhoneHeader back="/warden" title="Laundry" subtitle="Batch #14 · in distribution" />

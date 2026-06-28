@@ -17,7 +17,7 @@ create unique index if not exists users_username_unique on public.users (lower(u
 -- (we'll generate fresh hashes in app code; this is just so demo logins work today)
 do $$
 declare
-  default_hash text := '$2b$10$Q5oN8K4VqxqV.Ml0rN.5CO9p.PvbZQH4w4qLEnTQ4z9bN3mIqvE.S';
+  default_hash text := '$2b$10$KY957SklWARLB5eYorSYEuigAbqRd//zZ6YqKC46Ab0TDBoW1WGnS';
 begin
   update public.users set username = 'lakshmi', password_hash = default_hash where id = '11111111-1111-1111-1111-111111111111';
   update public.users set username = 'priya',   password_hash = default_hash where id = '22222222-2222-2222-2222-222222222222';

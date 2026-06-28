@@ -3,6 +3,7 @@ import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import MgmtTabBar from "@/components/MgmtTabBar";
 import { getDashboardSummary } from "@/lib/dashboard";
+import { guardRole } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,7 @@ function nowSubtitle(d: string) {
 }
 
 export default async function ManagementToday() {
+  await guardRole("management");
   const d = await getDashboardSummary();
   const s = d.studentState;
   const totalEnrolled = s.enrolledBoys + s.enrolledGirls;

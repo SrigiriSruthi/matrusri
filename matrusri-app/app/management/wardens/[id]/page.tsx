@@ -1,5 +1,8 @@
 import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
+import { guardRole } from "@/lib/guard";
+
+export const dynamic = "force-dynamic";
 
 type WardenDay = {
   name: string;
@@ -73,6 +76,7 @@ export default async function WardenDetail({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await guardRole("management");
   const { id } = await params;
   const w = WARDENS[id];
 

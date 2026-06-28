@@ -1,6 +1,9 @@
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import MgmtTabBar from "@/components/MgmtTabBar";
+import { guardRole } from "@/lib/guard";
+
+export const dynamic = "force-dynamic";
 
 const MGMT_NAV = [
   { href: "/management", icon: "📊", label: "Today" },
@@ -26,7 +29,8 @@ function tagColor(v: string) {
   return "bg-slate-100 text-slate-400";
 }
 
-export default function TrendsPage() {
+export default async function TrendsPage() {
+  await guardRole("management");
   return (
     <div className="min-h-screen pb-24">
       <PhoneHeader back="/management" title="Trends" subtitle="This week · 22 Jun – 28 Jun" />

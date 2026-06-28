@@ -3,6 +3,7 @@ import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import TaskCard from "@/components/TaskCard";
 import { getWardenToday, getAwayToday } from "@/lib/warden";
+import { guardRole } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +26,9 @@ function nowSubtitle() {
 }
 
 export default async function WardenHome() {
-  // No auth yet — show all tasks (not filtered by warden). When auth is wired,
-  // we'll filter to assigned_to = currentUserId.
-  const tasks = await getWardenToday();
+  const me = await guardRole("warden");
+  // Show only tasks assigned to me. (Management can see everything via Wardens drill-in.)
+  const tasks = await getWardenToday(me.id);
   const away = await getAwayToday();
 
   const done = tasks.filter((t) => t.status === "done").length;
@@ -40,7 +41,7 @@ export default async function WardenHome() {
       <PhoneHeader
         back="/"
         title="Today's Tasks"
-        subtitle={`All wardens · ${nowSubtitle()}`}
+        subtitle={`${me.name} · ${nowSubtitle()}`}
         rightSlot={<span className="opacity-50">🔔</span>}
       />
 
@@ -64,11 +65,11 @@ export default async function WardenHome() {
         {tasks.map((task) => {
           const href =
             task.name.startsWith("Attendance")
-              ? "/warden/attendance"
+              ? `/warden/attendance/${task.id}`
               : task.name.startsWith("Laundry")
               ? "/warden/laundry"
               : task.proofType === "photo" || task.proofType === "tap"
-              ? "/warden/task-action"
+              ? `/warden/task-action/${task.id}`
               : undefined;
           return <TaskCard key={task.id} task={task} href={href} />;
         })}

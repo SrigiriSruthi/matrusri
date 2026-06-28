@@ -2,6 +2,7 @@ import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import MgmtTabBar from "@/components/MgmtTabBar";
+import { guardRole } from "@/lib/guard";
 
 const MGMT_NAV = [
   { href: "/management", icon: "📊", label: "Today" },
@@ -12,26 +13,18 @@ const MGMT_NAV = [
 
 const SECTIONS = [
   { icon: "🎓", title: "Students", desc: "Add, edit, deactivate", href: "/management/settings/students" },
-  { icon: "👥", title: "Users (wardens, staff, management)", desc: "Manage roles and phones · 10 active", href: "#" },
-  { icon: "✅", title: "Outing approvers", desc: "Currently: Suresh, Lakshmi, Priya", href: "#" },
-  { icon: "🕒", title: "Daily schedule", desc: "16 tasks · time windows · per-warden assignment", href: "#" },
-  { icon: "🚰", title: "Pump sessions", desc: "Bore pump: 5:00–6:00 am · ±15 min tolerance", href: "#" },
-  { icon: "📆", title: "Holiday calendar", desc: "Sundays + festivals · Attendance #2 auto-skips", href: "#" },
-  { icon: "🔔", title: "Notification preferences", desc: "Push only (WhatsApp pending setup)", href: "#" },
-  { icon: "🗄", title: "Data retention", desc: "Photos: 30 days · Records: forever", href: "#" },
+  { icon: "👥", title: "Users (wardens, staff, management)", desc: "Manage roles + initial passwords", href: "/management/settings/users" },
+  { icon: "🕒", title: "Daily schedule", desc: "View task templates · generate today's instances", href: "/management/settings/schedule" },
 ];
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const me = await guardRole("management");
   return (
     <div className="min-h-screen pb-24">
       <PhoneHeader back="/management" title="Settings" subtitle="Configure your hostel" />
       <MgmtTabBar active="/management/settings" />
 
       <div className="p-4">
-        <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-800 mb-4">
-          ⚠️ Settings pages are coming next — for now this lists what you&apos;ll be able to configure.
-        </div>
-
         {SECTIONS.map((s, i) => (
           <Link
             key={i}
@@ -48,11 +41,13 @@ export default function SettingsPage() {
         ))}
 
         <div className="text-xs text-slate-400 text-center mt-6">
-          Logged in as Rajesh Naidu · Management
+          Logged in as {me.name} · Management
         </div>
-        <Link href="/" className="block text-center text-xs text-blue-700 underline mt-2">
-          Sign out
-        </Link>
+        <form action="/api/logout" method="POST" className="mt-2">
+          <button type="submit" className="block w-full text-center text-xs text-blue-700 underline">
+            Sign out
+          </button>
+        </form>
       </div>
 
       <BottomNav items={MGMT_NAV} active="/management/settings" />

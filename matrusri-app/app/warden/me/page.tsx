@@ -1,6 +1,9 @@
 import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
+import { guardRole } from "@/lib/guard";
+
+export const dynamic = "force-dynamic";
 
 const WARDEN_NAV = [
   { href: "/warden", icon: "📋", label: "Tasks" },
@@ -10,7 +13,8 @@ const WARDEN_NAV = [
   { href: "/warden/me", icon: "👤", label: "Me" },
 ];
 
-export default function WardenMe() {
+export default async function WardenMe() {
+  const me = await guardRole(["warden", "management"]);
   return (
     <div className="min-h-screen pb-24">
       <PhoneHeader back="/warden" title="My profile" />
@@ -21,9 +25,8 @@ export default function WardenMe() {
             👤
           </div>
           <div>
-            <div className="font-bold text-lg">Lakshmi Devi</div>
-            <div className="text-xs text-slate-500">Warden · joined 12 May 2026</div>
-            <div className="text-xs text-slate-500 mt-1">+91 98xxx xxxxx</div>
+            <div className="font-bold text-lg">{me.name}</div>
+            <div className="text-xs text-slate-500">Warden · @{me.username}</div>
           </div>
         </div>
 
@@ -87,12 +90,14 @@ export default function WardenMe() {
           <span className="text-slate-400">›</span>
         </Link>
 
-        <Link
-          href="/"
-          className="block w-full text-center bg-white text-red-600 font-semibold py-3 mt-4 rounded-lg border border-red-200 no-underline"
-        >
-          Sign out
-        </Link>
+        <form action="/api/logout" method="POST" className="mt-4">
+          <button
+            type="submit"
+            className="block w-full text-center bg-white text-red-600 font-semibold py-3 rounded-lg border border-red-200"
+          >
+            Sign out
+          </button>
+        </form>
       </div>
 
       <BottomNav items={WARDEN_NAV} active="/warden/me" />

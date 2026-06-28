@@ -2,6 +2,9 @@ import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import MgmtTabBar from "@/components/MgmtTabBar";
+import { guardRole } from "@/lib/guard";
+
+export const dynamic = "force-dynamic";
 
 const MGMT_NAV = [
   { href: "/management", icon: "📊", label: "Today" },
@@ -17,7 +20,8 @@ const WARDENS_TODAY = [
   { id: "ramesh",   name: "Ramesh",  done: 1, total: 2, missed: 0, open: 0, status: "ok"      as const, weekScore: 89  },
 ];
 
-export default function WardensPage() {
+export default async function WardensPage() {
+  await guardRole("management");
   return (
     <div className="min-h-screen pb-24">
       <PhoneHeader back="/management" title="Wardens" subtitle="Today's progress" />

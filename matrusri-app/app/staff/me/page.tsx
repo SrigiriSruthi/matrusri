@@ -1,6 +1,9 @@
 import Link from "next/link";
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
+import { guardRole } from "@/lib/guard";
+
+export const dynamic = "force-dynamic";
 
 const STAFF_NAV = [
   { href: "/staff", icon: "✅", label: "Approvals" },
@@ -8,7 +11,8 @@ const STAFF_NAV = [
   { href: "/staff/me", icon: "👤", label: "Me" },
 ];
 
-export default function StaffMe() {
+export default async function StaffMe() {
+  const me = await guardRole(["staff", "management"]);
   return (
     <div className="min-h-screen pb-24">
       <PhoneHeader back="/staff" title="My profile" />
@@ -19,9 +23,8 @@ export default function StaffMe() {
             👤
           </div>
           <div>
-            <div className="font-bold text-lg">Suresh Kumar</div>
-            <div className="text-xs text-slate-500">Staff approver · joined 12 May 2026</div>
-            <div className="text-xs text-slate-500 mt-1">+91 98xxx xxxxx</div>
+            <div className="font-bold text-lg">{me.name}</div>
+            <div className="text-xs text-slate-500">Staff approver · @{me.username}</div>
           </div>
         </div>
 
@@ -76,12 +79,14 @@ export default function StaffMe() {
           <span className="text-slate-400">›</span>
         </Link>
 
-        <Link
-          href="/"
-          className="block w-full text-center bg-white text-red-600 font-semibold py-3 mt-4 rounded-lg border border-red-200 no-underline"
-        >
-          Sign out
-        </Link>
+        <form action="/api/logout" method="POST" className="mt-4">
+          <button
+            type="submit"
+            className="block w-full text-center bg-white text-red-600 font-semibold py-3 rounded-lg border border-red-200"
+          >
+            Sign out
+          </button>
+        </form>
       </div>
 
       <BottomNav items={STAFF_NAV} active="/staff/me" />
