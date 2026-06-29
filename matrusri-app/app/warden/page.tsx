@@ -44,9 +44,11 @@ export default async function WardenHome() {
     getWardenToday(me.id),
     getMyOutingRequestsToday(me.id),
   ]);
-  // Translate task names to the user's language (icon was already set from English name)
+  // Translate display name to the user's language but keep the English name
+  // around for routing decisions (e.g. "Attendance" / "Laundry" prefix match).
   const tasks = tasksRaw.map((task) => ({
     ...task,
+    englishName: task.name,
     name: t(task.name, me.language),
   }));
 
@@ -127,9 +129,9 @@ export default async function WardenHome() {
 
         {tasks.map((task) => {
           const href =
-            task.name.startsWith("Attendance")
+            task.englishName.startsWith("Attendance")
               ? `/warden/attendance/${task.id}`
-              : task.name.startsWith("Laundry")
+              : task.englishName.startsWith("Laundry")
               ? "/warden/laundry"
               : task.proofType === "photo" || task.proofType === "tap"
               ? `/warden/task-action/${task.id}`
