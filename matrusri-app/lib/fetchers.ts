@@ -179,6 +179,33 @@ export async function getOpenLaundryIssues() {
   return data ?? [];
 }
 
+export type InFlightOuting = {
+  studentId: string;
+  status: "pending_approval" | "pending_gate" | "active";
+  expectedReturnAt: string | null;
+};
+
+export async function getInFlightOutingsByStudent(): Promise<Map<string, InFlightOuting>> {
+  const sb = serviceClient();
+  const { data, error } = await sb
+    .from("outings")
+    .select("student_id, status, expected_return_at")
+    .in("status", ["pending_approval", "pending_gate", "active"])
+    .is("returned_at", null);
+  if (error) throw error;
+
+  const map = new Map<string, InFlightOuting>();
+  for (const row of data ?? []) {
+    const s = row.status as InFlightOuting["status"];
+    map.set(row.student_id, {
+      studentId: row.student_id,
+      status: s,
+      expectedReturnAt: row.expected_return_at,
+    });
+  }
+  return map;
+}
+
 export async function getOuting(id: string) {
   const sb = serviceClient();
   const { data, error } = await sb

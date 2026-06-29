@@ -50,6 +50,101 @@ function nowSubtitle(_d: string) {
   return `${formatDateIST(now)} · ${formatTimeIST(now)}`;
 }
 
+function HeadcountCompare({
+  hc,
+}: {
+  hc: {
+    systemBoys: number;
+    systemGirls: number;
+    wardenBoys: number | null;
+    wardenGirls: number | null;
+    slotNumber: number | null;
+    submittedAt: string | null;
+    nextSlotTime: string | null;
+    diff: number;
+  };
+}) {
+  const systemTotal = hc.systemBoys + hc.systemGirls;
+  const hasWarden = hc.wardenBoys !== null && hc.wardenGirls !== null;
+  const wardenTotal = hasWarden ? (hc.wardenBoys ?? 0) + (hc.wardenGirls ?? 0) : null;
+  const match = hasWarden && hc.diff === 0;
+  const cell = "text-center text-sm";
+  const num = "text-lg font-bold";
+
+  return (
+    <div
+      className={`bg-white border border-slate-200 rounded-xl p-4 mb-4 border-l-4 ${
+        hasWarden ? (match ? "border-l-emerald-500" : "border-l-amber-500") : "border-l-slate-300"
+      }`}
+    >
+      <div className="flex justify-between items-center mb-3">
+        <div className="text-xs uppercase tracking-wider font-semibold text-slate-500">
+          System vs Warden count
+        </div>
+        {hasWarden ? (
+          match ? (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase bg-emerald-100 text-emerald-800">
+              ✓ Match
+            </span>
+          ) : (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase bg-amber-100 text-amber-800">
+              ⚠ Mismatch
+            </span>
+          )
+        ) : (
+          <span className="text-[10px] text-slate-400">No count yet today</span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 text-[11px] text-slate-500 mb-1">
+        <div />
+        <div className={cell}>Boys</div>
+        <div className={cell}>Girls</div>
+        <div className={cell}>Total</div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 items-center py-1">
+        <div className="text-xs text-slate-600">System</div>
+        <div className={cell}><span className={num}>{hc.systemBoys}</span></div>
+        <div className={cell}><span className={num}>{hc.systemGirls}</span></div>
+        <div className={cell}><span className={num}>{systemTotal}</span></div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 items-center py-1 border-t border-slate-100">
+        <div className="text-xs text-slate-600">
+          Warden
+          {hasWarden && (
+            <div className="text-[10px] text-slate-400">
+              Att #{hc.slotNumber} · {hc.submittedAt}
+            </div>
+          )}
+        </div>
+        <div className={cell}>
+          <span className={num}>{hasWarden ? hc.wardenBoys : "—"}</span>
+        </div>
+        <div className={cell}>
+          <span className={num}>{hasWarden ? hc.wardenGirls : "—"}</span>
+        </div>
+        <div className={cell}>
+          <span className={num}>{wardenTotal ?? "—"}</span>
+        </div>
+      </div>
+
+      {hasWarden && !match && (
+        <div className="border-t border-slate-100 pt-2 mt-1 text-[11px] text-amber-800">
+          ⚠ Difference: {hc.diff > 0 ? `+${hc.diff}` : hc.diff} — warden count
+          {hc.diff > 0 ? " is higher than system" : " is lower than system"}.
+        </div>
+      )}
+      {!hasWarden && hc.nextSlotTime && (
+        <div className="border-t border-slate-100 pt-2 mt-1 text-[11px] text-slate-500 text-center">
+          Next count due at {hc.nextSlotTime}.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default async function ManagementToday() {
   await guardRole("management");
   const d = await getDashboardSummary();
@@ -140,6 +235,9 @@ export default async function ManagementToday() {
             Sick = resting in hostel. Sent-home and at-doctor are counted in &ldquo;On outing.&rdquo;
           </div>
         </div>
+
+        {/* System vs warden headcount comparison */}
+        <HeadcountCompare hc={d.headcount} />
 
         {/* Laundry issues card — always shown */}
         <Link href="/warden/laundry" className="block no-underline text-inherit mb-4">

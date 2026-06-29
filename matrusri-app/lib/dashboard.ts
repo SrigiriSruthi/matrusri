@@ -4,6 +4,7 @@
 import { serviceClient } from "./supabase";
 import { todayIST, nowIST, formatTimeIST } from "./timezone";
 import { ensureTodayInstances } from "./ensureToday";
+import { getSystemHeadcount, firstAttendanceSlotTime } from "./headcount";
 
 export type DashboardSummary = {
   hostelName: string;
@@ -18,11 +19,21 @@ export type DashboardSummary = {
   studentState: {
     enrolledBoys: number;
     enrolledGirls: number;
-    presentBoys: number;
+    presentBoys: number;          // legacy — system-derived present total used as fallback
     presentGirls: number;
     onOuting: number;
     sickInHostel: number;
     missing: number;
+  };
+  headcount: {
+    systemBoys: number;
+    systemGirls: number;
+    wardenBoys: number | null;    // null when no slot submitted today
+    wardenGirls: number | null;
+    slotNumber: number | null;
+    submittedAt: string | null;   // formatted IST time
+    nextSlotTime: string | null;  // formatted "6:30am" — hint when no slot yet
+    diff: number;                 // (warden total) - (system total); 0 if no slot yet
   };
   latestAttendance: {
     slot: number;
@@ -63,32 +74,14 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   // Hostel config
   const { data: cfg } = await sb.from("config").select("hostel_name").single();
 
-  // Student enrollment by gender
-  const { data: students } = await sb
-    .from("students")
-    .select("gender, id")
-    .eq("is_active", true);
+  // System-derived headcount — live, computed from outings + sick logs.
+  const hc = await getSystemHeadcount();
+  const enrolledBoys = hc.enrolledBoys;
+  const enrolledGirls = hc.enrolledGirls;
+  const onOuting = hc.boysOnOuting + hc.girlsOnOuting;
+  const sickInHostel = hc.sickInHostel;
 
-  const enrolledBoys = students?.filter((s) => s.gender === "boy").length ?? 0;
-  const enrolledGirls = students?.filter((s) => s.gender === "girl").length ?? 0;
-
-  // Active outings (away from hostel)
-  const { data: outings } = await sb
-    .from("outings")
-    .select("id")
-    .eq("status", "active")
-    .is("returned_at", null);
-  const onOuting = outings?.length ?? 0;
-
-  // Active sick logs (in-hostel)
-  const { data: sick } = await sb
-    .from("sick_logs")
-    .select("id, outcome")
-    .eq("status", "open");
-  // In-hostel = resting or null outcome (just reported)
-  const sickInHostel = sick?.filter((s) => s.outcome === "resting" || s.outcome === null).length ?? 0;
-
-  // Latest attendance
+  // Latest attendance row for today (warden snapshot).
   const { data: attRow } = await sb
     .from("attendance")
     .select("*")
@@ -98,10 +91,18 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     .maybeSingle();
 
   const totalEnrolled = enrolledBoys + enrolledGirls;
-  const presentBoys = attRow?.boys_present ?? enrolledBoys - onOuting;
-  const presentGirls = attRow?.girls_present ?? enrolledGirls;
+  const systemTotal = hc.systemBoys + hc.systemGirls;
+  // "Present" totals fall back to the system count when no warden slot is in yet.
+  const presentBoys = attRow?.boys_present ?? hc.systemBoys;
+  const presentGirls = attRow?.girls_present ?? hc.systemGirls;
   const accountedFor = presentBoys + presentGirls + onOuting + sickInHostel;
   const missing = Math.max(0, totalEnrolled - accountedFor);
+
+  const wardenBoys = attRow?.boys_present ?? null;
+  const wardenGirls = attRow?.girls_present ?? null;
+  const wardenTotal = wardenBoys !== null && wardenGirls !== null ? wardenBoys + wardenGirls : null;
+  const diff = wardenTotal !== null ? wardenTotal - systemTotal : 0;
+  const nextSlotTime = attRow ? null : await firstAttendanceSlotTime();
 
   // Today's task instances — use IST
   const nowMin = nowIST().totalMinutes;
@@ -189,6 +190,16 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
       onOuting,
       sickInHostel,
       missing,
+    },
+    headcount: {
+      systemBoys: hc.systemBoys,
+      systemGirls: hc.systemGirls,
+      wardenBoys,
+      wardenGirls,
+      slotNumber: attRow?.slot_number ?? null,
+      submittedAt: attRow ? formatTime(attRow.submitted_at) : null,
+      nextSlotTime,
+      diff,
     },
     laundryIssues,
     latestAttendance: attRow

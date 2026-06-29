@@ -96,6 +96,56 @@ export async function getWardenToday(wardenId?: string): Promise<Task[]> {
   });
 }
 
+export type MyRequestStatus = "pending_approval" | "pending_gate" | "active" | "closed" | "rejected";
+
+export async function getMyOutingRequestsToday(wardenId: string) {
+  const sb = serviceClient();
+  const today = todayIST();
+  const dayStart = `${today}T00:00:00`;
+
+  const { data, error } = await sb
+    .from("outings")
+    .select(
+      "id, type, status, reason_note, rejection_reason, created_at, approved_at, started_at, returned_at, expected_return_at, approver:users!approved_by(name), student:students(name, class, dorm)"
+    )
+    .eq("requested_by", wardenId)
+    .gte("created_at", dayStart)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  type Row = {
+    id: string;
+    type: "regular" | "special" | "sick_pickup";
+    status: MyRequestStatus;
+    reason_note: string | null;
+    rejection_reason: string | null;
+    created_at: string;
+    approved_at: string | null;
+    started_at: string | null;
+    returned_at: string | null;
+    expected_return_at: string | null;
+    approver: { name: string } | null;
+    student: { name: string; class: string; dorm: string } | null;
+  };
+  const rows = (data as unknown as Row[]) ?? [];
+  return rows.map((r) => ({
+    id: r.id,
+    studentName: r.student?.name ?? "—",
+    studentClass: r.student?.class ?? "—",
+    type: r.type,
+    status: r.status,
+    reasonNote: r.reason_note ?? undefined,
+    rejectionReason: r.rejection_reason ?? undefined,
+    createdAt: formatTime(r.created_at) ?? "",
+    approvedAt: formatTime(r.approved_at) ?? undefined,
+    startedAt: formatTime(r.started_at) ?? undefined,
+    returnedAt: formatTime(r.returned_at) ?? undefined,
+    expectedReturn: formatTime(r.expected_return_at) ?? undefined,
+    approverName: r.approver?.name ?? undefined,
+  }));
+}
+
 export async function getAwayToday() {
   const sb = serviceClient();
   const { data, error } = await sb

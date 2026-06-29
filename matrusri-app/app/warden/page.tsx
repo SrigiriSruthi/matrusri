@@ -1,7 +1,7 @@
 import PhoneHeader from "@/components/PhoneHeader";
 import BottomNav from "@/components/BottomNav";
 import TaskCard from "@/components/TaskCard";
-import { getWardenToday } from "@/lib/warden";
+import { getWardenToday, getMyOutingRequestsToday } from "@/lib/warden";
 import { guardRole } from "@/lib/guard";
 import { t } from "@/lib/i18n";
 import { formatDateIST, formatTimeIST } from "@/lib/timezone";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const WARDEN_NAV = [
   { href: "/warden", icon: "📋", label: "Tasks" },
-  { href: "/warden/outing-new", icon: "🚪", label: "New outing" },
+  { href: "/warden/outing-new", icon: "🚪", label: "Outings" },
   { href: "/warden/sick", icon: "🤒", label: "Sick" },
   { href: "/warden/laundry", icon: "🧺", label: "Laundry" },
   { href: "/warden/me", icon: "👤", label: "Me" },
@@ -21,9 +21,29 @@ function nowSubtitle() {
   return `${formatDateIST(now)} · ${formatTimeIST(now)}`;
 }
 
+type RequestRow = Awaited<ReturnType<typeof getMyOutingRequestsToday>>[number];
+
+function statusBadge(s: RequestRow["status"]) {
+  switch (s) {
+    case "pending_approval":
+      return { label: "🟡 Waiting for staff", cls: "bg-amber-100 text-amber-800" };
+    case "pending_gate":
+      return { label: "✅ Approved · waiting at gate", cls: "bg-emerald-100 text-emerald-800" };
+    case "active":
+      return { label: "🚪 Out now", cls: "bg-blue-100 text-blue-800" };
+    case "closed":
+      return { label: "🏠 Returned", cls: "bg-slate-100 text-slate-700" };
+    case "rejected":
+      return { label: "❌ Rejected", cls: "bg-red-100 text-red-800" };
+  }
+}
+
 export default async function WardenHome() {
   const me = await guardRole("warden");
-  const tasksRaw = await getWardenToday(me.id);
+  const [tasksRaw, myRequests] = await Promise.all([
+    getWardenToday(me.id),
+    getMyOutingRequestsToday(me.id),
+  ]);
   // Translate task names to the user's language (icon was already set from English name)
   const tasks = tasksRaw.map((task) => ({
     ...task,
@@ -56,6 +76,48 @@ export default async function WardenHome() {
         ) : (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs px-3 py-2 rounded mb-4">
             ✓ {done} done · 🟡 {open} open · 🔴 {missed} missed · {upcoming} upcoming · Total {tasks.length}
+          </div>
+        )}
+
+        {myRequests.length > 0 && (
+          <div className="mb-4">
+            <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-2">
+              My outing requests today ({myRequests.length})
+            </div>
+            {myRequests.map((r) => {
+              const badge = statusBadge(r.status);
+              return (
+                <div
+                  key={r.id}
+                  className="bg-white border border-slate-200 rounded-xl p-3 mb-2"
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="font-semibold text-sm">
+                      {r.studentName} · Class {r.studentClass}
+                    </div>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap ${badge.cls}`}>
+                      {badge.label}
+                    </span>
+                  </div>
+                  {r.reasonNote && (
+                    <div className="text-xs text-slate-500 mt-1">&ldquo;{r.reasonNote}&rdquo;</div>
+                  )}
+                  <div className="text-[11px] text-slate-500 mt-1">
+                    Sent {r.createdAt}
+                    {r.approverName && r.approvedAt && (
+                      <> · {r.status === "rejected" ? "Rejected" : "Approved"} by {r.approverName} at {r.approvedAt}</>
+                    )}
+                    {r.startedAt && <> · Left {r.startedAt}</>}
+                    {r.returnedAt && <> · Returned {r.returnedAt}</>}
+                  </div>
+                  {r.status === "rejected" && r.rejectionReason && (
+                    <div className="text-xs text-red-700 mt-1">
+                      <span className="font-semibold">Reason:</span> {r.rejectionReason}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 

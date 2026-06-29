@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { approveOuting, rejectOuting } from "@/lib/actions";
 
@@ -38,15 +39,28 @@ function minAgo(iso: string) {
 
 export default function StaffApprovalsClient({ pending }: { pending: Row[] }) {
   const router = useRouter();
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   async function approve(id: string) {
     await approveOuting(id);
     router.refresh();
   }
 
-  async function reject(id: string) {
-    if (!confirm("Reject this outing? The warden will be told the parent cannot take the student.")) return;
-    await rejectOuting(id);
+  function openReject(id: string) {
+    setRejectingId(id);
+    setRejectReason("");
+  }
+
+  function cancelReject() {
+    setRejectingId(null);
+    setRejectReason("");
+  }
+
+  async function confirmReject(id: string) {
+    await rejectOuting(id, rejectReason || undefined);
+    setRejectingId(null);
+    setRejectReason("");
     router.refresh();
   }
 
@@ -86,20 +100,49 @@ export default function StaffApprovalsClient({ pending }: { pending: Row[] }) {
               ℹ️ Approve to authorize. Warden will then confirm parent has arrived at the gate before student is released.
             </div>
 
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => approve(req.id)}
-                className="flex-1 bg-emerald-600 text-white font-semibold py-3 rounded-lg text-sm"
-              >
-                ✓ Approve
-              </button>
-              <button
-                onClick={() => reject(req.id)}
-                className="flex-1 bg-red-500 text-white font-semibold py-3 rounded-lg text-sm"
-              >
-                ✗ Reject
-              </button>
-            </div>
+            {rejectingId === req.id ? (
+              <div className="mt-4 border-t border-slate-100 pt-3">
+                <label className="text-xs text-slate-500 block mb-1">
+                  Reason (optional — warden will see this)
+                </label>
+                <input
+                  type="text"
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="e.g., No prior parent consent"
+                  className="w-full border border-slate-300 rounded p-2 text-sm mb-2"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => confirmReject(req.id)}
+                    className="flex-1 bg-red-500 text-white font-semibold py-3 rounded-lg text-sm"
+                  >
+                    ✗ Confirm reject
+                  </button>
+                  <button
+                    onClick={cancelReject}
+                    className="flex-1 bg-white text-slate-700 font-semibold py-3 rounded-lg text-sm border border-slate-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => approve(req.id)}
+                  className="flex-1 bg-emerald-600 text-white font-semibold py-3 rounded-lg text-sm"
+                >
+                  ✓ Approve
+                </button>
+                <button
+                  onClick={() => openReject(req.id)}
+                  className="flex-1 bg-red-500 text-white font-semibold py-3 rounded-lg text-sm"
+                >
+                  ✗ Reject
+                </button>
+              </div>
+            )}
           </div>
         );
       })}

@@ -10,30 +10,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "./auth";
 import { serviceClient } from "./supabase";
-import { todayIST, windowState } from "./timezone";
+import { todayIST } from "./timezone";
+import { getSystemHeadcount } from "./headcount";
 
-async function assertWindowOpen(taskInstanceId: string) {
+async function assertTaskSubmittable(taskInstanceId: string) {
   const sb = serviceClient();
   const { data, error } = await sb
     .from("task_instances")
-    .select("status, template:task_templates(window_start, window_end)")
+    .select("status")
     .eq("id", taskInstanceId)
     .maybeSingle();
   if (error || !data) throw new Error("Task not found.");
-
-  type R = { status: string; template: { window_start: string; window_end: string } | null };
-  const row = data as unknown as R;
-  if (row.status === "done") {
+  if (data.status === "done") {
     throw new Error("This task is already done.");
-  }
-  if (!row.template) return;
-
-  const state = windowState(row.template.window_start, row.template.window_end);
-  if (state === "before") {
-    throw new Error("Too early — this task's window hasn't opened yet.");
-  }
-  if (state === "after") {
-    throw new Error("Too late — this task's window has closed.");
   }
 }
 
@@ -60,7 +49,7 @@ export async function markTaskTapDone(taskInstanceId: string, note?: string) {
   const me = await getCurrentUser();
   if (!me) denied();
 
-  await assertWindowOpen(taskInstanceId);
+  await assertTaskSubmittable(taskInstanceId);
 
   const sb = serviceClient();
   const { error } = await sb
@@ -83,7 +72,7 @@ export async function submitTaskPhoto(taskInstanceId: string, photoUrl: string, 
   const me = await getCurrentUser();
   if (!me) denied();
 
-  await assertWindowOpen(taskInstanceId);
+  await assertTaskSubmittable(taskInstanceId);
 
   const sb = serviceClient();
   const { error } = await sb
@@ -107,6 +96,66 @@ export async function submitTaskPhoto(taskInstanceId: string, photoUrl: string, 
 // ATTENDANCE
 // ============================================================================
 
+async function reconcileHeadcountAlert(opts: {
+  attendanceId: string;
+  date: string;
+  slotNumber: number;
+  boysPresent: number;
+  girlsPresent: number;
+  actorId: string;
+}) {
+  const sb = serviceClient();
+  const hc = await getSystemHeadcount();
+  const wardenTotal = opts.boysPresent + opts.girlsPresent;
+  const systemTotal = hc.systemBoys + hc.systemGirls;
+  const diff = wardenTotal - systemTotal;
+
+  if (diff === 0) {
+    // Submission matches system — auto-clear any open mismatch alerts from earlier today.
+    await sb
+      .from("alerts")
+      .update({
+        acknowledged_at: new Date().toISOString(),
+        acknowledged_by: opts.actorId,
+      })
+      .eq("type", "attendance_mismatch")
+      .is("acknowledged_at", null)
+      .gte("created_at", `${opts.date}T00:00:00`);
+    // Also clear any open alert tied to *this* attendance row (e.g. updated submit that now matches).
+    await sb
+      .from("alerts")
+      .update({
+        acknowledged_at: new Date().toISOString(),
+        acknowledged_by: opts.actorId,
+      })
+      .eq("type", "attendance_mismatch")
+      .eq("related_entity_id", opts.attendanceId)
+      .is("acknowledged_at", null);
+    return;
+  }
+
+  // Idempotent per attendance row — one open alert per slot, keyed by attendance.id.
+  const { data: existing } = await sb
+    .from("alerts")
+    .select("id")
+    .eq("type", "attendance_mismatch")
+    .eq("related_entity_id", opts.attendanceId)
+    .is("acknowledged_at", null)
+    .maybeSingle();
+
+  if (existing) return;
+
+  const sign = diff > 0 ? "+" : "";
+  await sb.from("alerts").insert({
+    type: "attendance_mismatch",
+    severity: "yellow",
+    related_entity_type: "attendance",
+    related_entity_id: opts.attendanceId,
+    title: `Headcount mismatch · Att #${opts.slotNumber}`,
+    message: `Warden counted ${wardenTotal} (${opts.boysPresent} boys, ${opts.girlsPresent} girls); system expects ${systemTotal} (${hc.systemBoys}/${hc.systemGirls}). Diff ${sign}${diff}.`,
+  });
+}
+
 export async function submitAttendance(opts: {
   slotNumber: 1 | 2 | 3 | 4 | 5;
   boysPresent: number;
@@ -129,6 +178,9 @@ export async function submitAttendance(opts: {
     .eq("slot_number", opts.slotNumber)
     .maybeSingle();
 
+  let attendanceId: string | null = null;
+  let didVerifyOnly = false;
+
   if (existing) {
     // Lunch (slot 3): if a different warden submits, treat as cross-verification
     if (opts.slotNumber === 3 && existing.submitted_by !== me!.id) {
@@ -144,6 +196,8 @@ export async function submitAttendance(opts: {
         .eq("id", existing.id);
       if (error) throw error;
       await logAudit(me!.id, "attendance.verified", "attendance", existing.id);
+      attendanceId = existing.id;
+      didVerifyOnly = true;
     } else {
       const { error } = await sb
         .from("attendance")
@@ -158,19 +212,38 @@ export async function submitAttendance(opts: {
         .eq("id", existing.id);
       if (error) throw error;
       await logAudit(me!.id, "attendance.updated", "attendance", existing.id);
+      attendanceId = existing.id;
     }
   } else {
-    const { error } = await sb.from("attendance").insert({
-      date: today,
-      slot_number: opts.slotNumber,
-      boys_present: opts.boysPresent,
-      girls_present: opts.girlsPresent,
-      absent_with_permission: opts.absentWithPermission,
-      absent_without_permission: opts.absentWithoutPermission,
-      submitted_by: me!.id,
-    });
+    const { data: inserted, error } = await sb
+      .from("attendance")
+      .insert({
+        date: today,
+        slot_number: opts.slotNumber,
+        boys_present: opts.boysPresent,
+        girls_present: opts.girlsPresent,
+        absent_with_permission: opts.absentWithPermission,
+        absent_without_permission: opts.absentWithoutPermission,
+        submitted_by: me!.id,
+      })
+      .select("id")
+      .single();
     if (error) throw error;
-    await logAudit(me!.id, "attendance.submitted", "attendance", null, { slot: opts.slotNumber });
+    attendanceId = inserted.id;
+    await logAudit(me!.id, "attendance.submitted", "attendance", attendanceId, { slot: opts.slotNumber });
+  }
+
+  // Compare warden count vs system count; raise/auto-clear yellow alert.
+  // Skipped for the cross-verification path (slot 3 verifier just records counts, not primary submit).
+  if (attendanceId && !didVerifyOnly) {
+    await reconcileHeadcountAlert({
+      attendanceId,
+      date: today,
+      slotNumber: opts.slotNumber,
+      boysPresent: opts.boysPresent,
+      girlsPresent: opts.girlsPresent,
+      actorId: me!.id,
+    });
   }
 
   revalidatePath("/warden");
@@ -267,6 +340,23 @@ export async function createOuting(opts: {
   if (me!.role !== "warden" && me!.role !== "management") denied();
 
   const sb = serviceClient();
+
+  // Guard: only one in-flight outing per student at a time.
+  const { data: inFlight } = await sb
+    .from("outings")
+    .select("status")
+    .eq("student_id", opts.studentId)
+    .in("status", ["pending_approval", "pending_gate", "active"])
+    .is("returned_at", null)
+    .maybeSingle();
+  if (inFlight) {
+    const label =
+      inFlight.status === "active"
+        ? "is currently out on an outing"
+        : "already has an outing waiting for staff approval or at the gate";
+    throw new Error(`This student ${label}. Close that one first.`);
+  }
+
   const { data, error } = await sb
     .from("outings")
     .insert({
@@ -311,11 +401,12 @@ export async function approveOuting(outingId: string) {
   revalidatePath("/management");
 }
 
-export async function rejectOuting(outingId: string) {
+export async function rejectOuting(outingId: string, reason?: string) {
   const me = await getCurrentUser();
   if (!me) denied();
   if (me!.role !== "staff" && me!.role !== "management") denied();
 
+  const trimmed = reason?.trim();
   const sb = serviceClient();
   const { error } = await sb
     .from("outings")
@@ -323,11 +414,12 @@ export async function rejectOuting(outingId: string) {
       status: "rejected",
       approved_by: me!.id,
       approved_at: new Date().toISOString(),
+      rejection_reason: trimmed && trimmed.length > 0 ? trimmed : null,
     })
     .eq("id", outingId);
 
   if (error) throw error;
-  await logAudit(me!.id, "outing.rejected", "outings", outingId);
+  await logAudit(me!.id, "outing.rejected", "outings", outingId, trimmed ? { reason: trimmed } : undefined);
   revalidatePath("/staff");
   revalidatePath("/warden");
 }

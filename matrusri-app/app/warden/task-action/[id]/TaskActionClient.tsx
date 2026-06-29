@@ -74,7 +74,8 @@ export default function TaskActionClient(props: Props) {
 
   const alreadyDone = props.status === "done";
   const win = useWindowState(props.windowStart, props.windowEnd);
-  const locked = !alreadyDone && win.state !== "open";
+  // Window is informational only — wardens can submit any time of day.
+  const locked = false;
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];

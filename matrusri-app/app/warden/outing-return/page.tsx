@@ -1,4 +1,5 @@
 import PhoneHeader from "@/components/PhoneHeader";
+import OutingsTabs from "@/components/OutingsTabs";
 import { guardRole } from "@/lib/guard";
 import { getActiveOutings } from "@/lib/fetchers";
 import { serviceClient } from "@/lib/supabase";
@@ -47,6 +48,7 @@ export default async function OutingReturnPage() {
       />
 
       <div className="p-4">
+        <OutingsTabs active="out" outCount={atGate.length + active.length} />
         <OutingReturnClient
           atGate={(atGate as unknown as OutingRow[]) ?? []}
           active={(active as unknown as OutingRow[]) ?? []}

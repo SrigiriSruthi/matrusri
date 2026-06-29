@@ -4,7 +4,38 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createOuting } from "@/lib/actions";
 
-type Student = { id: string; name: string; class: string; dorm: string; parent_name: string };
+type InFlight = {
+  status: "pending_approval" | "pending_gate" | "active";
+  expectedReturnAt: string | null;
+};
+
+type Student = {
+  id: string;
+  name: string;
+  class: string;
+  dorm: string;
+  parent_name: string;
+  inFlight: InFlight | null;
+};
+
+function formatExpectedShort(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const a = h >= 12 ? "pm" : "am";
+  h = h % 12 || 12;
+  return `${h}:${m.toString().padStart(2, "0")}${a}`;
+}
+
+function inFlightBadge(f: InFlight) {
+  if (f.status === "active") {
+    const back = f.expectedReturnAt ? ` · back by ${formatExpectedShort(f.expectedReturnAt)}` : "";
+    return { label: `🟢 Out${back}`, cls: "bg-blue-100 text-blue-800" };
+  }
+  // pending_approval + pending_gate -> shown as one "Pending" state
+  return { label: "🟡 Pending", cls: "bg-amber-100 text-amber-800" };
+}
 
 // 2nd Saturday detection — special-day flag for management dashboard
 function is2ndSaturday() {
@@ -112,16 +143,33 @@ export default function OutingNewClient({ students }: { students: Student[] }) {
           )}
           {filtered.map((s) => {
             const isPicked = picked?.id === s.id;
+            const blocked = !!s.inFlight;
+            const badge = s.inFlight ? inFlightBadge(s.inFlight) : null;
+            const bg = blocked
+              ? "bg-slate-50 opacity-60 cursor-not-allowed"
+              : isPicked
+              ? "bg-blue-50"
+              : "bg-white";
             return (
               <button
                 key={s.id}
-                onClick={() => setPicked(s)}
-                className={`w-full text-left px-3 py-3 border-b last:border-b-0 border-slate-200 ${isPicked ? "bg-blue-50" : "bg-white"}`}
+                onClick={() => !blocked && setPicked(s)}
+                disabled={blocked}
+                className={`w-full text-left px-3 py-3 border-b last:border-b-0 border-slate-200 ${bg}`}
               >
-                <div className="font-semibold text-sm">
-                  {s.name} · Class {s.class} · Dorm {s.dorm}
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <div className="font-semibold text-sm">
+                      {s.name} · Class {s.class} · Dorm {s.dorm}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">Parent: {s.parent_name}</div>
+                  </div>
+                  {badge && (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap ${badge.cls}`}>
+                      {badge.label}
+                    </span>
+                  )}
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">Parent: {s.parent_name}</div>
               </button>
             );
           })}
