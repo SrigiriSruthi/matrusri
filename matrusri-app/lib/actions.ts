@@ -541,30 +541,45 @@ export async function createUser(form: FormData) {
   const password = String(form.get("password") ?? "");
   const language = String(form.get("language") ?? "en");
 
-  if (!name || !username || !phone || !password) throw new Error("Missing fields");
-  if (!["warden", "staff", "management"].includes(role)) throw new Error("Bad role");
-  if (!["en", "te", "hi"].includes(language)) throw new Error("Bad language");
-  if (password.length < 6) throw new Error("Password must be at least 6 characters");
+  // Preserve typed values in the redirect so the form repopulates on error.
+  const back = (err: string) => {
+    const qp = new URLSearchParams({ error: err, name, username, phone, role, language });
+    redirect(`/management/settings/users/new?${qp.toString()}`);
+  };
 
-  // Create auth.users row first
+  if (!name || !username || !phone || !password) return back("All fields are required.");
+  if (!["warden", "staff", "management"].includes(role)) return back("Pick a role.");
+  if (!["en", "te", "hi"].includes(language)) return back("Pick a language.");
+  if (password.length < 6) return back("Password must be at least 6 characters.");
+
+  // Pre-flight collision checks.
+  const { data: phoneClash } = await sb
+    .from("users")
+    .select("id, name")
+    .eq("phone", phone)
+    .maybeSingle();
+  if (phoneClash) return back(`That phone is already used by ${phoneClash.name}.`);
+
+  const { data: usernameClash } = await sb
+    .from("users")
+    .select("id, name")
+    .ilike("username", username)
+    .maybeSingle();
+  if (usernameClash) return back(`Username "${username}" is taken.`);
+
   const newId = crypto.randomUUID();
   const passwordHash = await hashPassword(password);
 
-  // Insert into public.users — we skip auth.users since we don't use Supabase Auth
-  // But auth.users has a foreign key to public.users. Create a matching auth row using raw SQL.
-  // For now, since we own the auth ourselves, just insert into public.users without auth row.
-  // (We need to drop the FK constraint to public.users.id -> auth.users.id, or insert into auth.users.)
-  //
-  // Simpler approach: use an admin endpoint. But that adds complexity.
-  // Easiest: insert into auth.users too via service role.
-
+  // auth.users row first (so the FK from public.users -> auth.users holds).
   const { error: authErr } = await sb.auth.admin.createUser({
     id: newId,
     email: `${username}@matrusri.local`,
     email_confirm: true,
-    password: crypto.randomUUID(), // placeholder; we don't use Supabase Auth's password
+    password: crypto.randomUUID(),
   });
-  if (authErr && !String(authErr.message).includes("already")) throw authErr;
+  if (authErr && !String(authErr.message).includes("already")) {
+    return back(`Auth setup failed: ${authErr.message}`);
+  }
 
   const { error } = await sb.from("users").insert({
     id: newId,
@@ -576,7 +591,14 @@ export async function createUser(form: FormData) {
     language: language as "en" | "te" | "hi",
   });
 
-  if (error) throw error;
+  if (error) {
+    // Public insert failed — clean up the orphan auth.users row we just created.
+    await sb.auth.admin.deleteUser(newId).catch(() => {});
+    const msg = String(error.message || "");
+    if (msg.includes("users_phone_key")) return back("That phone is already in use.");
+    if (msg.includes("users_username") || msg.includes("username")) return back(`Username "${username}" is taken.`);
+    return back(`Could not save user: ${msg}`);
+  }
   await logAudit(me!.id, "user.created", "users", newId, { username, role });
   revalidatePath("/management/settings/users");
   redirect("/management/settings/users");
