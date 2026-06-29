@@ -128,10 +128,14 @@ export default async function WardenHome() {
         </div>
 
         {tasks.map((task) => {
+          // Route by proof_type, not by display name — names get translated and
+          // also get renamed by management in the schedule editor.
+          // Laundry is the one exception that still needs a name check (no
+          // other signal distinguishes it from generic tap tasks).
           const href =
-            task.englishName.startsWith("Attendance")
+            task.proofType === "count"
               ? `/warden/attendance/${task.id}`
-              : task.englishName.startsWith("Laundry")
+              : task.englishName.toLowerCase().startsWith("laundry")
               ? "/warden/laundry"
               : task.proofType === "photo" || task.proofType === "tap"
               ? `/warden/task-action/${task.id}`
